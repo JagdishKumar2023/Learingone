@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: width * 0.06,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: 'orange',
     marginBottom: height * 0.03,
     textAlign: 'center',
   },

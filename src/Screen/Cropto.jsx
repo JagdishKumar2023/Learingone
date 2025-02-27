@@ -79,7 +79,6 @@ const Crypto = () => {
       <CroptoSilder />
       <CryptoInfo />
       <Accordion />
-
       <Footer />
     </ScrollView>
   );

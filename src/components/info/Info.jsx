@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: height * 0.015,
     textAlign: 'center',
-    color: '#FFF',
+    color: 'orange',
   },
   highlight: {
     color: '#4CC9FE',
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.02,
   },
   iconLabel: {
-    color: '#FFF',
+    color: 'orange',
     fontSize: width * 0.04,
     marginTop: 5,
     fontWeight: '600',

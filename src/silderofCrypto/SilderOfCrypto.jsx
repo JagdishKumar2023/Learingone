@@ -5,21 +5,20 @@ import {
   Image,
   FlatList,
   StyleSheet,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
   Dimensions,
   Animated,
 } from 'react-native';
-
+import Icon from 'react-native-vector-icons/FontAwesome';
 import crypto1 from '../assets/crypto1.png';
 import crypto2 from '../assets/crypto2.png';
 import crypto3 from '../assets/crypto3.png';
 
 const images = [crypto1, crypto2, crypto3];
 
-// Get screen width & height
 const {width, height} = Dimensions.get('window');
-const IMAGE_WIDTH = width * 0.9; // 90% of screen width
-const IMAGE_HEIGHT = IMAGE_WIDTH * 0.6; // Maintain aspect ratio
+const IMAGE_WIDTH = width * 0.9;
+const IMAGE_HEIGHT = IMAGE_WIDTH * 0.6;
 
 const SilderOfCrypto = () => {
   const flatListRef = useRef(null);
@@ -31,22 +30,29 @@ const SilderOfCrypto = () => {
     let interval;
     if (isScrolling) {
       interval = setInterval(() => {
-        setCurrentIndex(prevIndex => {
-          const nextIndex = (prevIndex + 1) % images.length;
-          flatListRef.current?.scrollToOffset({
-            offset: nextIndex * IMAGE_WIDTH,
-            animated: true,
-          });
-          return nextIndex;
-        });
-      }, 1800); // Auto-scroll every 3 seconds
+        nextSlide();
+      }, 2500);
     }
-
     return () => clearInterval(interval);
   }, [isScrolling]);
 
-  const handleTouchStart = () => setIsScrolling(false);
-  const handleTouchEnd = () => setTimeout(() => setIsScrolling(true), 2500);
+  const nextSlide = () => {
+    const nextIndex = (currentIndex + 1) % images.length;
+    flatListRef.current?.scrollToOffset({
+      offset: nextIndex * IMAGE_WIDTH,
+      animated: true,
+    });
+    setCurrentIndex(nextIndex);
+  };
+
+  const prevSlide = () => {
+    const prevIndex = (currentIndex - 1 + images.length) % images.length;
+    flatListRef.current?.scrollToOffset({
+      offset: prevIndex * IMAGE_WIDTH,
+      animated: true,
+    });
+    setCurrentIndex(prevIndex);
+  };
 
   const handleScroll = event => {
     const newIndex = Math.round(
@@ -55,33 +61,43 @@ const SilderOfCrypto = () => {
     setCurrentIndex(newIndex);
   };
 
-  return (
-    <TouchableWithoutFeedback
-      onPressIn={handleTouchStart}
-      onPressOut={handleTouchEnd}>
-      <View style={styles.container}>
-        {/* Heading */}
-        <Text style={styles.heading}>
-          Digital <Text style={styles.title}>Assets</Text>
-        </Text>
+  const restartAutoScroll = () => {
+    setIsScrolling(false);
+    setTimeout(() => setIsScrolling(true), 1000);
+  };
 
-        <FlatList
-          ref={flatListRef}
-          data={images}
-          horizontal
-          pagingEnabled
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({item}) => (
-            <View style={styles.imageWrapper}>
-              <Image source={item} style={styles.image} />
-            </View>
-          )}
-        />
+  return (
+    <View style={styles.container}>
+      <Text style={styles.heading}>
+        Digital <Text style={styles.title}>Assets</Text>
+      </Text>
+
+      <FlatList
+        ref={flatListRef}
+        data={images}
+        horizontal
+        pagingEnabled
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({item}) => (
+          <View style={styles.imageWrapper}>
+            <Image source={item} style={styles.image} />
+          </View>
+        )}
+      />
+
+      <View style={styles.controls}>
+        <TouchableOpacity onPress={prevSlide} style={styles.iconButton}>
+          <Icon name="chevron-left" size={24} color="white" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={nextSlide} style={styles.iconButton}>
+          <Icon name="chevron-right" size={24} color="white" />
+        </TouchableOpacity>
       </View>
-    </TouchableWithoutFeedback>
+    </View>
   );
 };
 
@@ -89,38 +105,45 @@ export default SilderOfCrypto;
 
 const styles = StyleSheet.create({
   container: {
-    height: IMAGE_HEIGHT + height * 0.1, // Adjust dynamically
+    height: IMAGE_HEIGHT + height * 0.1,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: height * 0.02,
+    marginTop: height * 0.05,
   },
   heading: {
     fontSize: width * 0.06,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'orange', // Changed to orange
     marginBottom: height * 0.015,
   },
   title: {
-    color: 'cyan',
+    color: 'orange', // Changed to orange
   },
   imageWrapper: {
     width: IMAGE_WIDTH,
     height: IMAGE_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 5},
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5, // Android shadow
-    borderRadius: width * 0.05, // Dynamic border radius
+    borderRadius: width * 0.05,
     overflow: 'hidden',
+    backgroundColor: '#222',
   },
   image: {
     width: '95%',
     height: '100%',
     resizeMode: 'cover',
     borderRadius: width * 0.05,
+  },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '50%',
+    marginTop: height * 0.02,
+  },
+  iconButton: {
+    padding: 10,
+    backgroundColor: '#333',
+    borderRadius: 50,
   },
 });

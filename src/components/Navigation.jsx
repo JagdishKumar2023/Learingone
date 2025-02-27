@@ -52,7 +52,7 @@ function MyTabs() {
             case 'cropto':
               iconName = 'bitcoin';
               break;
-            case 'Rings':
+            case 'game':
               iconName = 'gamepad-variant';
               break;
             case 'about':

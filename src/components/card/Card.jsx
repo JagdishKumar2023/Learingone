@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   highlight: {
-    color: '#4CC9FE',
+    color: 'orange',
     fontWeight: 'bold',
   },
   sliderContainer: {

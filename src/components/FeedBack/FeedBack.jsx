@@ -110,13 +110,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: 'white',
+    color: 'orange',
     marginBottom: 20,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'cyan',
+    color: 'orange',
     marginBottom: 5,
   },
   input: {
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: 'green',
+    backgroundColor: 'orange',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
-    backgroundColor: '#16C47F',
-    padding: 20,
+    backgroundColor: 'orange',
+    padding: 40,
     borderRadius: 20,
     alignItems: 'center',
     width: width * 0.8,

@@ -9,7 +9,6 @@ import {
   Dimensions,
 } from 'react-native';
 import HeaderImageSrc from '../assets/headerImage.svg';
-import GstPage from './gst/GstPage';
 import Card from './card/Card';
 import Info from '../components/info/Info';
 import Potfolio from './potfolio/Potfolio';
@@ -127,9 +126,7 @@ const Home = () => {
                     {translateY: moveAnim.y},
                   ],
                 },
-              ]}>
-              <HeaderImageSrc width={width * 0.35} height={height * 0.2} />
-            </Animated.View>
+              ]}></Animated.View>
           </TouchableOpacity>
         </View>
       </View>
@@ -155,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     paddingHorizontal: width * 0.05,
     height: height * 0.5,
-    borderColor: 'green',
+    borderColor: 'orange',
     borderWidth: 2,
     borderRadius: 15,
     marginTop: 8,
@@ -163,7 +160,7 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     flexWrap: 'wrap',
   },
   textContainer: {
@@ -171,18 +168,18 @@ const styles = StyleSheet.create({
     maxWidth: '60%',
   },
   heading: {
-    color: '#16C47F',
+    color: 'orange',
     fontSize: width * 0.1,
     fontWeight: 'bold',
   },
   subText: {
-    color: '#FFD700',
+    color: 'cyan',
     fontSize: width * 0.05,
     marginTop: 10,
     textAlign: 'center',
   },
   signUpButton: {
-    backgroundColor: 'green',
+    backgroundColor: 'orange',
     borderRadius: 25,
     paddingVertical: height * 0.02,
     paddingHorizontal: width * 0.05,

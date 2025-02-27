@@ -50,7 +50,7 @@ const CryptoInfo = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        Benefits of <Text style={styles.highlight}>Crypto Deposit</Text>
+        <Text style={styles.highlight}>Benefits of Crypto Deposit</Text>
       </Text>
 
       <FlatList
@@ -88,6 +88,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#111',
+    marginTop: 40,
+    borderRadius: 20,
   },
   title: {
     fontSize: 24,
@@ -96,7 +98,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   highlight: {
-    color: 'cyan',
+    color: 'orange',
   },
   slide: {
     width,

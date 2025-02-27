@@ -6,7 +6,6 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import Timer from '../components/timer/Timer';
 import BigSmallMini from '../BigSmallMini/BigSmallMini';
 import Table from '../components/Table/Table';

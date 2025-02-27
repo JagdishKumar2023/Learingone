@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   subHeading: {
-    color: 'cyan',
+    color: 'orange',
   },
   imageWrapper: {
     width: IMAGE_WIDTH,

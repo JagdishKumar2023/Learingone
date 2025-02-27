@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const {width, height} = Dimensions.get('window'); // Get screen size
+const {width, height} = Dimensions.get('window');
 
 const options = [
   {name: 'My Orders', icon: 'clipboard-list-outline'},
@@ -27,10 +27,10 @@ const ProfileSection = () => {
         {options.map((item, index) => (
           <TouchableOpacity key={index} style={styles.option}>
             <View style={styles.optionContent}>
-              <Icon name={item.icon} size={28} color="#4CC9FE" />
+              <Icon name={item.icon} size={28} color="#FFA500" />
               <Text style={styles.optionText}>{item.name}</Text>
             </View>
-            <Icon name="chevron-right" size={28} color="#8A8A8A" />
+            <Icon name="chevron-right" size={28} color="#FF8C00" />
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -43,12 +43,12 @@ export default ProfileSection;
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: '#121212',
     borderRadius: 20,
     paddingVertical: height * 0.02,
   },
   optionsContainer: {
-    width: width * 0.9, // Dynamic width
+    width: width * 0.9,
     alignItems: 'center',
   },
   option: {
@@ -59,14 +59,14 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.025,
     paddingHorizontal: width * 0.05,
     borderBottomWidth: 1,
-    borderBottomColor: '#4CC9FE',
+    borderBottomColor: '#FFA500',
     borderRadius: 12,
-    backgroundColor: '#1F1F1F',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    backgroundColor: '#1C1C1C',
+    elevation: 6,
+    shadowColor: '#FFA500',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
     marginBottom: height * 0.015,
   },
   optionContent: {
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: width * 0.05,
-    color: '#FFF',
+    color: 'orange',
     fontWeight: '600',
     marginLeft: width * 0.04,
   },
