@@ -49,17 +49,6 @@ const Portfolio = () => {
     flatListRef.current?.scrollToIndex({index, animated: true});
   };
 
-  const handleNext = () => {
-    const nextIndex = (currentIndex + 1) % roadmapSteps.length;
-    scrollToIndex(nextIndex);
-  };
-
-  const handlePrev = () => {
-    const prevIndex =
-      currentIndex === 0 ? roadmapSteps.length - 1 : currentIndex - 1;
-    scrollToIndex(prevIndex);
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>

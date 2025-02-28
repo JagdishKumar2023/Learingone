@@ -8,24 +8,33 @@ import {
   Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useNavigation} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
 const options = [
-  {name: 'My Orders', icon: 'clipboard-list-outline'},
-  {name: 'Transaction Details', icon: 'bank-transfer'},
-  {name: 'eKYC', icon: 'card-account-details-outline'},
-  {name: 'Support', icon: 'headset'},
-  {name: 'Logout', icon: 'logout'},
-  {name: 'About', icon: 'information-outline'},
+  {name: 'My Order', icon: 'clipboard-list-outline', route: 'My Order'},
+  {
+    name: 'Transaction Details',
+    icon: 'bank-transfer',
+    route: 'Transaction Details',
+  },
+  {name: 'eKYC', icon: 'card-account-details-outline', route: 'eKYC'},
+  {name: 'Support', icon: 'headset', route: 'Support'},
+  {name: 'About', icon: 'information-outline', route: 'About'},
 ];
 
 const ProfileSection = () => {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.optionsContainer}>
         {options.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.option}>
+          <TouchableOpacity
+            key={index}
+            style={styles.option}
+            onPress={() => navigation.navigate(item.route)}>
             <View style={styles.optionContent}>
               <Icon name={item.icon} size={28} color="#FFA500" />
               <Text style={styles.optionText}>{item.name}</Text>
