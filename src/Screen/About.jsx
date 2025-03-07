@@ -2,11 +2,13 @@ import React from 'react';
 import {View, StyleSheet} from 'react-native';
 import ProfileSection from '../components/profilesection/ProfileSection';
 import ImageUpload from '../components/imageuploader/Imageupload';
+import WalletCard from '../components/profilesection/WalletCard';
 
 const About = () => {
   return (
     <View style={styles.container}>
       <ImageUpload />
+      <WalletCard />
       <ProfileSection />
     </View>
   );

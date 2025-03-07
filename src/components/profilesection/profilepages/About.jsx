@@ -28,7 +28,7 @@ const About = () => {
       </Text>
 
       <Text style={styles.highlight}>
-        Real-time strategies, secure transactions, and lightning-fast orders
+        Real-time strategies, secure transactions and lightning-fast orders
         redefine your trading experience.
       </Text>
 
@@ -150,12 +150,14 @@ const styles = StyleSheet.create({
     color: '#FFA500',
     marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 50, // Adde
   },
   description: {
     fontSize: 20,
     color: '#FFF',
     marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 35,
   },
   highlight: {
     fontSize: 24,
@@ -163,12 +165,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 35,
   },
   noDemoAccountContainer: {
     backgroundColor: '#1C1C1C',
     padding: 20,
     borderRadius: 15,
     marginBottom: 20,
+    lineHeight: 30,
   },
   noDemoAccountTitle: {
     fontSize: 28,

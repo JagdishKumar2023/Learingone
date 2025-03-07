@@ -82,6 +82,14 @@ const Transactions = () => {
     const itemDate = new Date(item.date);
     const inDateRange = itemDate >= startDate && itemDate <= endDate;
     if (filter === 'All') return inDateRange;
+    if (filter === 'Withdrawal Complete')
+      return (
+        item.type === 'Withdrawal' && item.status === 'Complete' && inDateRange
+      );
+    if (filter === 'Withdrawal Rejected')
+      return (
+        item.type === 'Withdrawal' && item.status === 'Rejected' && inDateRange
+      );
     return item.status === filter && inDateRange;
   });
 
@@ -107,12 +115,17 @@ const Transactions = () => {
     <View style={styles.container}>
       <Text style={styles.header}>Transactions</Text>
 
-      {/* Filter buttons */}
-      {/* Filter buttons with horizontal slider */}
       <View style={styles.filterContainer}>
         <FlatList
           horizontal
-          data={['All', 'Complete', 'Pending', 'Rejected']}
+          data={[
+            'All',
+            'Complete',
+            'Pending',
+            'Rejected',
+            'Withdrawal Complete',
+            'Withdrawal Rejected',
+          ]}
           keyExtractor={item => item}
           renderItem={({item}) => (
             <TouchableOpacity
@@ -135,7 +148,6 @@ const Transactions = () => {
         />
       </View>
 
-      {/* Date range pickers */}
       <View style={styles.datePickerContainer}>
         <TouchableOpacity
           style={styles.dateButton}
@@ -173,7 +185,6 @@ const Transactions = () => {
         />
       )}
 
-      {/* Transactions list */}
       <FlatList
         data={filteredTransactions}
         renderItem={renderItem}
@@ -201,19 +212,21 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   filterContainer: {
-    marginBottom: height * 0.03,
+    marginBottom: height * 0.02,
   },
   filterButton: {
     paddingVertical: height * 0.01,
-    paddingHorizontal: width * 0.08,
-    borderRadius: 20,
+    paddingHorizontal: width * 0.06,
+    borderRadius: 25,
     backgroundColor: '#1C1C1C',
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#FFA500',
   },
   activeFilterButton: {
     backgroundColor: '#FFA500',
+    borderColor: '#FF4500',
   },
-
   filterText: {
     fontSize: width * 0.04,
     color: '#FFFFFF',
@@ -226,13 +239,15 @@ const styles = StyleSheet.create({
   datePickerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: height * 0.02,
+    marginBottom: height * 0.03,
   },
   dateButton: {
     backgroundColor: '#1C1C1C',
-    paddingVertical: height * 0.01,
-    paddingHorizontal: width * 0.05,
-    borderRadius: 20,
+    paddingVertical: height * 0.015,
+    paddingHorizontal: width * 0.06,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#FFA500',
   },
   dateText: {
     color: '#FFA500',
@@ -244,12 +259,17 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#1C1C1C',
-    borderRadius: 12,
-    padding: height * 0.02,
-    marginBottom: height * 0.015,
+    borderRadius: 15,
+    padding: height * 0.025,
+    marginBottom: height * 0.02,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   cardContent: {
     flexDirection: 'column',

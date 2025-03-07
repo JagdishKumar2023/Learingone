@@ -1,77 +1,100 @@
 import React, {useState} from 'react';
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  Platform,
-  useWindowDimensions,
-} from 'react-native';
+import {View, StyleSheet, useWindowDimensions, Platform} from 'react-native';
 import {List} from 'react-native-paper';
 
 const Accordion = () => {
   const [activeAccordion, setActiveAccordion] = useState(null);
-
   const {width} = useWindowDimensions();
-  const isTablet = width > 600; // Adjust styles for tablets
+  const isTablet = width > 600;
 
   const handlePress = key => {
     setActiveAccordion(prevKey => (prevKey === key ? null : key));
   };
 
   return (
-    <View style={[styles.container, {paddingHorizontal: isTablet ? 20 : 10}]}>
+    <View style={[styles.container, {paddingHorizontal: isTablet ? 30 : 15}]}>
       <List.Accordion
-        title="Deposit Details"
+        title="Important Info Infinity Prime"
         titleStyle={styles.title}
-        left={props => <List.Icon {...props} icon="bank" color="orange" />}
+        left={props => <List.Icon {...props} icon="information" color="#fff" />}
+        expanded={activeAccordion === 'about'}
+        onPress={() => handlePress('about')}
+        style={styles.accordion}>
+        <List.Item
+          title="Experience real trading with no demo accounts."
+          titleStyle={styles.itemText}
+        />
+        <List.Item
+          title="Unlock Prime Rings for exclusive rewards."
+          titleStyle={styles.itemText}
+        />
+        <List.Item
+          title="24/7 customer support for Prime members."
+          titleStyle={styles.itemText}
+        />
+      </List.Accordion>
+
+      <List.Accordion
+        title="Wallet Information"
+        titleStyle={styles.title}
+        left={props => <List.Icon {...props} icon="wallet" color="#fff" />}
+        expanded={activeAccordion === 'wallet'}
+        onPress={() => handlePress('wallet')}
+        style={styles.accordion}>
+        <List.Item
+          title="Your wallet has and any issue make ticket"
+          titleStyle={styles.itemText}
+        />
+        <List.Item
+          title="Deposit Time 0 min - 24 hours"
+          titleStyle={styles.itemText}
+        />
+        <List.Item
+          title="Wallet withdrwal Time is 24 hours to 2 bussiness day"
+          titleStyle={styles.itemText}
+        />
+      </List.Accordion>
+
+      <List.Accordion
+        title="Deposit Information"
+        titleStyle={styles.title}
+        left={props => <List.Icon {...props} icon="cash-fast" color="#fff" />}
         expanded={activeAccordion === 'deposit'}
         onPress={() => handlePress('deposit')}
         style={styles.accordion}>
-        <List.Item title="Amount: $500" titleStyle={styles.itemText} />
-        <List.Item title="Status: Completed" titleStyle={styles.itemText} />
-        <List.Item title="Time: 10:15 AM" titleStyle={styles.itemText} />
-        <List.Item title="Commission: 2.5%" titleStyle={styles.itemText} />
+        <List.Item
+          title="Deposits are processed instantly."
+          titleStyle={styles.itemText}
+        />
+        <List.Item
+          title="Deposit time ranges from 0 min to under 24 hours."
+          titleStyle={styles.itemText}
+        />
+        <List.Item
+          title="Ensure you use verified payment methods."
+          titleStyle={styles.itemText}
+        />
       </List.Accordion>
 
       <List.Accordion
-        title="Withdrawal Details"
+        title="How to Play Prime Rings"
         titleStyle={styles.title}
         left={props => (
-          <List.Icon {...props} icon="cash-multiple" color="orange" />
+          <List.Icon {...props} icon="gamepad-variant" color="#fff" />
         )}
-        expanded={activeAccordion === 'withdrawal'}
-        onPress={() => handlePress('withdrawal')}
+        expanded={activeAccordion === 'howToPlay'}
+        onPress={() => handlePress('howToPlay')}
         style={styles.accordion}>
-        <List.Item title="Amount: $200" titleStyle={styles.itemText} />
-        <List.Item title="Status: Processing" titleStyle={styles.itemText} />
-        <List.Item title="Time: 02:45 PM" titleStyle={styles.itemText} />
-        <List.Item title="Commission: 1.8%" titleStyle={styles.itemText} />
-      </List.Accordion>
-
-      <List.Accordion
-        title="Game Earnings"
-        titleStyle={styles.title}
-        left={props => (
-          <List.Icon {...props} icon="gamepad-variant" color="orange" />
-        )}
-        expanded={activeAccordion === 'gameEarnings'}
-        onPress={() => handlePress('gameEarnings')}
-        style={styles.accordion}>
-        <List.Item title="Total Wins: 15" titleStyle={styles.itemText} />
-        <List.Item title="Total Earnings: $1200" titleStyle={styles.itemText} />
-        <List.Item title="Best Streak: 5 Wins" titleStyle={styles.itemText} />
-      </List.Accordion>
-
-      <List.Accordion
-        title="Bonus Rewards"
-        titleStyle={styles.title}
-        left={props => <List.Icon {...props} icon="gift" color="orange" />}
-        expanded={activeAccordion === 'bonuses'}
-        onPress={() => handlePress('bonuses')}
-        style={styles.accordion}>
-        <List.Item title="Welcome Bonus: $50" titleStyle={styles.itemText} />
-        <List.Item title="Daily Login Bonus: $5" titleStyle={styles.itemText} />
-        <List.Item title="Referral Bonus: $20" titleStyle={styles.itemText} />
+        <List.Item title="1. Select your ring." titleStyle={styles.itemText} />
+        <List.Item title="2. Place your bet." titleStyle={styles.itemText} />
+        <List.Item
+          title="3. Wait for the result."
+          titleStyle={styles.itemText}
+        />
+        <List.Item
+          title="4. Win and earn rewards!"
+          titleStyle={styles.itemText}
+        />
       </List.Accordion>
     </View>
   );
@@ -80,21 +103,27 @@ const Accordion = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
-    marginTop: Platform.OS === 'ios' ? 50 : 30,
-    marginBottom: 20,
+    backgroundColor: '#121212',
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
   },
   accordion: {
-    backgroundColor: '#121212',
+    backgroundColor: '#FF8C00',
+    borderRadius: 5,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   title: {
-    color: 'orange',
-    fontSize: Dimensions.get('window').width > 600 ? 20 : 18,
+    color: '#fff',
+    fontSize: 22,
     fontWeight: 'bold',
   },
   itemText: {
-    color: '#bbb',
-    fontSize: Dimensions.get('window').width > 600 ? 18 : 16,
+    color: 'orange',
+    fontSize: 18,
+    paddingVertical: 8,
   },
 });
 

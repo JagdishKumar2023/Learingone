@@ -14,7 +14,6 @@ import CryptoHeader from '../components/cryptoheader/CryptoHeader';
 import SilderOfCrypto from '../silderofCrypto/SilderOfCrypto';
 import CryptoInfo from '../components/cryptyInfo/CryptoInfo';
 import Footer from '../components/footer/Footer';
-import Accordion from '../components/accordion/Accordion';
 
 const {width} = Dimensions.get('window');
 
@@ -78,7 +77,6 @@ const Crypto = () => {
       <SilderOfCrypto />
       <CroptoSilder />
       <CryptoInfo />
-      <Accordion />
       <Footer />
     </ScrollView>
   );

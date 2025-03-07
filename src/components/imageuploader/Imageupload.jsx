@@ -19,9 +19,6 @@ const ImageUpload = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Update Profile</Text>
-
-      {/* Profile Picture Section */}
       <TouchableOpacity onPress={selectImage} style={styles.imageContainer}>
         {imageUri ? (
           <Image source={{uri: imageUri}} style={styles.profileImage} />
