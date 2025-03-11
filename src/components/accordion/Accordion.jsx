@@ -1,130 +1,227 @@
 import React, {useState} from 'react';
-import {View, StyleSheet, useWindowDimensions, Platform} from 'react-native';
-import {List} from 'react-native-paper';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  LayoutAnimation,
+  ScrollView,
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Accordion = () => {
-  const [activeAccordion, setActiveAccordion] = useState(null);
-  const {width} = useWindowDimensions();
-  const isTablet = width > 600;
+  const [expandedSection, setExpandedSection] = useState(null);
 
-  const handlePress = key => {
-    setActiveAccordion(prevKey => (prevKey === key ? null : key));
+  const toggleAccordion = section => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedSection(expandedSection === section ? null : section);
   };
 
+  const sections = [
+    {
+      title: 'How to Deposit Funds',
+      content: (
+        <View style={styles.contentContainer}>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 1:</Text> Navigate to the Wallet
+            section.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 2:</Text> Tap on "Deposit": PhonePe,
+            Google Pay, Paytm.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 3:</Text> Choose your payment method:
+          </Text>
+          <Text style={styles.subText}>• UPI Transfer</Text>
+          <Text style={styles.subText}>• Cryptocurrency (BTC, ETH, USDT)</Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 4:</Text> Enter the amount (Minimum
+            deposit: ₹250).
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 5:</Text> Confirm the transaction —
+            most methods are instant.
+          </Text>
+        </View>
+      ),
+    },
+    {
+      title: 'How to Withdraw Earnings',
+      content: (
+        <View style={styles.contentContainer}>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 1:</Text> Go to the Wallet section.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 2:</Text> Tap on "Withdraw".
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 3:</Text> Select your withdrawal
+            method:
+          </Text>
+          <Text style={styles.subText}>• Bank transfer</Text>
+          <Text style={styles.subText}>• UPI Transfer</Text>
+          <Text style={styles.subText}>• Crypto wallets</Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 4:</Text> Enter the amount (Minimum
+            withdrawal: ₹500).
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 5:</Text> Confirm — processing takes
+            24-48 hours.
+          </Text>
+        </View>
+      ),
+    },
+    {
+      title: 'How to Invest Smartly',
+      content: (
+        <View style={styles.contentContainer}>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 1:</Text> Research market trends
+            using the platform's analytics.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 2:</Text> Decide your investment
+            type:
+          </Text>
+          <Text style={styles.subText}>
+            • Color Rings (Green, Red, Violet): Payout — Red/Green: 2x, Violet:
+            2.8x
+          </Text>
+          <Text style={styles.subText}>
+            • Number predictions (0-9): Payout — 9x
+          </Text>
+          <Text style={styles.subText}>
+            • Sizing (Big/Mini/Small): Payout — 2x
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 3:</Text> Place your investment and
+            set a limit.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 4:</Text> Use risk management
+            strategies — never invest more than you're willing to lose.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 5:</Text> Monitor your investments
+            through the dashboard.
+          </Text>
+        </View>
+      ),
+    },
+    {
+      title: 'How to Verify Your Account',
+      content: (
+        <View style={styles.contentContainer}>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 1:</Text> Go to your Profile and tap
+            "Account Verification".
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 2:</Text> Upload a valid
+            government-issued ID (Aadhar, PAN card, Passport).
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 3:</Text> Take a selfie for identity
+            confirmation.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 4:</Text> Submit your details —
+            verification usually takes 24-72 hours.
+          </Text>
+          <Text style={styles.bulletPoint}>
+            <Text style={styles.step}>Step 5:</Text> Once verified, you can
+            withdraw earnings without limits.
+          </Text>
+        </View>
+      ),
+    },
+  ];
+
   return (
-    <View style={[styles.container, {paddingHorizontal: isTablet ? 30 : 15}]}>
-      <List.Accordion
-        title="Important Info Infinity Prime"
-        titleStyle={styles.title}
-        left={props => <List.Icon {...props} icon="information" color="#fff" />}
-        expanded={activeAccordion === 'about'}
-        onPress={() => handlePress('about')}
-        style={styles.accordion}>
-        <List.Item
-          title="Experience real trading with no demo accounts."
-          titleStyle={styles.itemText}
-        />
-        <List.Item
-          title="Unlock Prime Rings for exclusive rewards."
-          titleStyle={styles.itemText}
-        />
-        <List.Item
-          title="24/7 customer support for Prime members."
-          titleStyle={styles.itemText}
-        />
-      </List.Accordion>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>FAQs</Text>
 
-      <List.Accordion
-        title="Wallet Information"
-        titleStyle={styles.title}
-        left={props => <List.Icon {...props} icon="wallet" color="#fff" />}
-        expanded={activeAccordion === 'wallet'}
-        onPress={() => handlePress('wallet')}
-        style={styles.accordion}>
-        <List.Item
-          title="Your wallet has and any issue make ticket"
-          titleStyle={styles.itemText}
-        />
-        <List.Item
-          title="Deposit Time 0 min - 24 hours"
-          titleStyle={styles.itemText}
-        />
-        <List.Item
-          title="Wallet withdrwal Time is 24 hours to 2 bussiness day"
-          titleStyle={styles.itemText}
-        />
-      </List.Accordion>
-
-      <List.Accordion
-        title="Deposit Information"
-        titleStyle={styles.title}
-        left={props => <List.Icon {...props} icon="cash-fast" color="#fff" />}
-        expanded={activeAccordion === 'deposit'}
-        onPress={() => handlePress('deposit')}
-        style={styles.accordion}>
-        <List.Item
-          title="Deposits are processed instantly."
-          titleStyle={styles.itemText}
-        />
-        <List.Item
-          title="Deposit time ranges from 0 min to under 24 hours."
-          titleStyle={styles.itemText}
-        />
-        <List.Item
-          title="Ensure you use verified payment methods."
-          titleStyle={styles.itemText}
-        />
-      </List.Accordion>
-
-      <List.Accordion
-        title="How to Play Prime Rings"
-        titleStyle={styles.title}
-        left={props => (
-          <List.Icon {...props} icon="gamepad-variant" color="#fff" />
-        )}
-        expanded={activeAccordion === 'howToPlay'}
-        onPress={() => handlePress('howToPlay')}
-        style={styles.accordion}>
-        <List.Item title="1. Select your ring." titleStyle={styles.itemText} />
-        <List.Item title="2. Place your bet." titleStyle={styles.itemText} />
-        <List.Item
-          title="3. Wait for the result."
-          titleStyle={styles.itemText}
-        />
-        <List.Item
-          title="4. Win and earn rewards!"
-          titleStyle={styles.itemText}
-        />
-      </List.Accordion>
-    </View>
+      {sections.map(section => (
+        <View key={section.title}>
+          <TouchableOpacity
+            style={styles.accordion}
+            onPress={() => toggleAccordion(section.title)}>
+            <Text style={styles.accordionTitle}>{section.title}</Text>
+            <Ionicons
+              name={
+                expandedSection === section.title
+                  ? 'chevron-up'
+                  : 'chevron-down'
+              }
+              size={24}
+              color="#121212"
+            />
+          </TouchableOpacity>
+          {expandedSection === section.title && (
+            <View style={styles.accordionContent}>{section.content}</View>
+          )}
+        </View>
+      ))}
+    </ScrollView>
   );
 };
+
+export default Accordion;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    padding: 20,
+  },
+  header: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFA500',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   accordion: {
-    backgroundColor: '#FF8C00',
-    borderRadius: 5,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 3},
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    backgroundColor: '#FFA500',
+    padding: 20,
+    borderRadius: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
   },
-  title: {
-    color: '#fff',
-    fontSize: 22,
+  accordionTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#121212',
   },
-  itemText: {
-    color: 'orange',
+  accordionContent: {
+    backgroundColor: '#1C1C1C',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 15,
+  },
+  contentContainer: {
+    paddingLeft: 10,
+  },
+  bulletPoint: {
+    color: '#FFF',
+    fontSize: 20,
+    marginBottom: 8,
+    textAlign: 'left',
+  },
+  subText: {
+    color: '#BBB',
     fontSize: 18,
-    paddingVertical: 8,
+    paddingLeft: 20,
+    marginBottom: 8,
+    textAlign: 'left',
+  },
+  step: {
+    fontWeight: 'bold',
+    color: '#FFA500',
   },
 });
-
-export default Accordion;

@@ -34,11 +34,9 @@ const ringsData = [
 
 const Game = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [showTimer, setShowTimer] = useState(true);
   const [showOverlay, setShowOverlay] = useState(false);
   const [modalColor, setModalColor] = useState('white');
   const [selectedColors, setSelectedColors] = useState(ringsData[0].stroke3);
-  const [numberColors, setNumberColors] = useState();
 
   const handleTimerEnd = () => {
     setShowOverlay(false);

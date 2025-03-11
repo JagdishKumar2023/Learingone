@@ -8,52 +8,41 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import {useNavigation} from '@react-navigation/native';
-import Card from './card/Card';
-import Info from '../components/info/Info';
-import Potfolio from './potfolio/Potfolio';
-import FeedBack from './../components/FeedBack/FeedBack';
-import Footer from './footer/Footer';
-import CustomerReview from './customerreview/CustomerReview';
-import Accordion from './accordion/Accordion';
 
 const {width, height} = Dimensions.get('window');
 
-const Home = () => {
-  const navigation = useNavigation();
+const HomePage = () => {
   const textAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
-  const translateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(textAnim, {
           toValue: 1,
-          duration: 2500,
+          duration: 3000,
           useNativeDriver: true,
         }),
         Animated.timing(textAnim, {
           toValue: 2,
-          duration: 2500,
+          duration: 3000,
           useNativeDriver: true,
         }),
         Animated.timing(textAnim, {
           toValue: 3,
-          duration: 2500,
+          duration: 3000,
           useNativeDriver: true,
         }),
       ]),
     ).start();
   }, []);
 
-  const startCircleMotion = () => {
+  const startInPlaceAnimation = () => {
     Animated.parallel([
       Animated.sequence([
         Animated.timing(scaleAnim, {
-          toValue: 1.3,
+          toValue: 1.2,
           duration: 300,
           useNativeDriver: true,
         }),
@@ -65,29 +54,17 @@ const Home = () => {
       ]),
       Animated.timing(rotateAnim, {
         toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateAnim, {
-        toValue: 1,
-        duration: 1000,
+        duration: 600,
         useNativeDriver: true,
       }),
     ]).start(() => {
       rotateAnim.setValue(0);
-      translateAnim.setValue(0);
-      navigation.navigate('game'); // Redirect to Game screen
     });
   };
 
   const rotateInterpolate = rotateAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
-  });
-
-  const translateInterpolate = translateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 50], // Moves in a circular path
   });
 
   const textOpacity = textAnim.interpolate({
@@ -105,17 +82,15 @@ const Home = () => {
 
   return (
     <ScrollView style={styles.scrollContainer}>
-      <LinearGradient
-        colors={['#1a1a1a', '#000']}
-        style={styles.gradientContainer}>
+      <View style={styles.container}>
         <View style={styles.content}>
           <View style={styles.textContainer}>
             <Text style={styles.heading}>
-              Innovative Platform for Smart Investment
+              Innovative platform for Smart Investment Platform
             </Text>
             <Text style={styles.subHeading}>No Demo Account Available</Text>
             <Text style={styles.attractiveLine}>
-              Start investing with confidence Real profits, Real growth.
+              Start investing with confidence Real profits Real growth
             </Text>
             <View style={styles.overlayText}>
               <Animated.Text style={[styles.subText, {opacity: textOpacity}]}>
@@ -129,143 +104,108 @@ const Home = () => {
               </Animated.Text>
             </View>
             <TouchableOpacity style={styles.signUpButton}>
-              <Text style={styles.signUpText}>Get Started</Text>
+              <Text style={styles.signUpText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Circular Motion + Navigation */}
-          <TouchableOpacity onPress={startCircleMotion}>
+          <TouchableOpacity onPress={startInPlaceAnimation}>
             <Animated.View
               style={[
-                styles.animatedCircle,
-                {
-                  transform: [
-                    {scale: scaleAnim},
-                    {rotate: rotateInterpolate},
-                    {translateX: translateInterpolate},
-                    {translateY: translateInterpolate},
-                  ],
-                },
-              ]}>
-              <Text style={styles.circleText}>Invest Now</Text>
-            </Animated.View>
+                styles.svgContainer,
+                {transform: [{scale: scaleAnim}, {rotate: rotateInterpolate}]},
+              ]}
+            />
           </TouchableOpacity>
         </View>
-      </LinearGradient>
-      <Card />
-      <Potfolio />
-      <Info />
-      <CustomerReview />
-      <Accordion />
-      <FeedBack />
-      <Footer />
+      </View>
     </ScrollView>
   );
 };
 
-export default Home;
+export default HomePage;
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: 'black',
   },
-  gradientContainer: {
+  container: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: width * 0.05,
     width: '100%',
-    minHeight: height * 0.7,
-    paddingVertical: height * 0.08,
-    paddingHorizontal: width * 0.08,
+    minHeight: height * 0.1,
+    borderColor: 'orange',
+    borderWidth: 2,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#F7931A',
-    shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 10,
-    borderColor: 'orange',
-    borderWidth: 3,
-    borderRadius: 10,
+    padding: 50,
   },
   content: {
-    justifyContent: 'center',
+    flexDirection: 'column',
     alignItems: 'center',
-    width: '100%',
+    justifyContent: 'center',
+    width: '110%',
   },
   textContainer: {
     width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heading: {
-    color: 'orange',
-    fontSize: width * 0.08,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  subHeading: {
-    color: 'cyan',
-    fontSize: width * 0.06,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  attractiveLine: {
-    color: 'gold',
-    fontSize: width * 0.05,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 30,
+    paddingHorizontal: width * 0.05,
   },
   overlayText: {
     height: 100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 20,
+    width: '100%',
+    marginTop: 20,
+  },
+  heading: {
+    color: 'orange',
+    fontSize: width * 0.1,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    width: '100%',
+    marginBottom: 10,
+  },
+  subHeading: {
     color: 'cyan',
+    fontSize: width * 0.08,
+    fontWeight: '600',
+    textAlign: 'center',
+    width: '100%',
+    marginBottom: 10,
+  },
+  attractiveLine: {
+    color: 'gold',
+    fontSize: width * 0.07,
+    fontWeight: '500',
+    textAlign: 'center',
+    width: '100%',
+    marginBottom: 15,
   },
   subText: {
     color: 'cyan',
-    fontSize: width * 0.05,
+    fontSize: width * 0.06,
     textAlign: 'center',
-    marginBottom: 10,
+    width: '100%',
   },
   signUpButton: {
-    backgroundColor: '#F7931A',
+    backgroundColor: 'orange',
     borderRadius: 25,
-    paddingVertical: 15,
-    paddingHorizontal: 50,
-    marginTop: 20,
-    shadowColor: '#F7931A',
-    shadowOffset: {width: 0, height: 5},
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    elevation: 8,
+    paddingVertical: height * 0.04,
+    paddingHorizontal: width * 0.2,
+    marginTop: height * 0.04,
+    width: '80%',
+    alignSelf: 'center',
   },
   signUpText: {
-    color: '#000',
-    fontSize: width * 0.05,
+    color: 'white',
+    fontSize: width * 0.06,
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  animatedCircle: {
-    width: width * 0.4,
-    height: width * 0.4,
-    borderRadius: width * 0.2,
-    backgroundColor: 'orange',
-    marginTop: 30,
+  svgContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: 'orange',
-    shadowOffset: {width: 0, height: 5},
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  circleText: {
-    color: 'cyan',
-    fontSize: width * 0.06,
-    fontWeight: 'bold',
+    width: '100%',
+    height: width * 0.5,
+    marginTop: 20,
   },
 });

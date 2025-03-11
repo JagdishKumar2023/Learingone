@@ -1,10 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
-import Animated, {
-  useSharedValue,
-  withTiming,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
 
 export default function Timer({onFiveSecondsRemaining}) {
   const [selectedTime, setSelectedTime] = useState(30); // Default 30 sec

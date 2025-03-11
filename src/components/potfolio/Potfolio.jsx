@@ -20,7 +20,7 @@ const {width, height} = Dimensions.get('window');
 const roadmapSteps = [
   {
     image: pot1,
-    title: 'Beginner (0-6 Months)',
+    title: 'Beginner (6 to 1 year)',
     icon: 'account',
     color: '#4CC9FE',
   },
@@ -37,17 +37,11 @@ const roadmapSteps = [
     color: '#FF4500',
   },
   {image: pot4, title: 'Expert (3-5 Years)', icon: 'trophy', color: '#FFA500'},
-  {image: pot1, title: 'Pro Trader (5+ Years)', icon: 'star', color: '#FFD700'},
 ];
 
 const Portfolio = () => {
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const scrollToIndex = index => {
-    setCurrentIndex(index);
-    flatListRef.current?.scrollToIndex({index, animated: true});
-  };
 
   return (
     <View style={styles.container}>
@@ -116,7 +110,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   image: {
-    width: '95%',
+    width: '105%',
     height: '100%',
     resizeMode: 'cover',
   },

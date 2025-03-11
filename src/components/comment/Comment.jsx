@@ -8,7 +8,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
-
 import comment1 from '../../assets/comment1.png';
 import comment2 from '../../assets/comment2.png';
 import comment3 from '../../assets/comment3.png';
@@ -84,7 +83,7 @@ const styles = StyleSheet.create({
   button: {
     position: 'absolute',
     bottom: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(85, 34, 34, 0.5)',
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 5,

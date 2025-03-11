@@ -35,7 +35,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center', // Ensures the content is vertically centered
-    padding: 20,
+    padding: 15,
+    marginTop: 15,
   },
   title: {
     fontSize: 24,

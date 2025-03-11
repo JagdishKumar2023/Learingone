@@ -1,8 +1,10 @@
+// Plugins
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
+// React Native autolink
 react {
     autolinkLibrariesWithApp()
 }
@@ -10,19 +12,22 @@ react {
 def enableProguardInReleaseBuilds = false
 def jscFlavor = 'org.webkit:android-jsc:+'
 
+// Android configuration
 android {
+    namespace "com.test"
+    compileSdk rootProject.ext.compileSdkVersion
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.test"
     defaultConfig {
         applicationId "com.test"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true // Ensure MultiDex support for large apps
     }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -31,6 +36,7 @@ android {
             keyPassword 'android'
         }
     }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -45,16 +51,21 @@ android {
 
 allprojects {
     repositories {
-        google() // Ensure Google Maven is included
-        mavenCentral() // Recommended over jcenter
-        maven { url "https://jitpack.io" } // For additional dependencies
+        google() // Google's Maven repository
+        mavenCentral() // Kotlin and other dependencies
+        maven { url "https://jitpack.io" } // JitPack for additional libraries
     }
 }
 
+// Dependencies
 dependencies {
     implementation("com.facebook.react:react-android")
     implementation project(':react-native-vector-icons')
 
+    // ✅ GIF support using Fresco
+    implementation 'com.facebook.fresco:animated-gif:2.5.0'
+
+    // Hermes (optional, if enabled)
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
@@ -62,7 +73,7 @@ dependencies {
     }
 }
 
-// Force correct Gradle version for older dependencies
+// Force correct Gradle version
 configurations.all {
     resolutionStrategy {
         force 'com.android.tools.build:gradle:7.2.1'
