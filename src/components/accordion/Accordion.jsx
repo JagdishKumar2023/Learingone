@@ -37,7 +37,7 @@ const Accordion = () => {
           <Text style={styles.subText}>• Cryptocurrency (BTC, ETH, USDT)</Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 4:</Text> Enter the amount (Minimum
-            deposit: ₹250).
+            deposit: ₹250) with UPI transaction.
           </Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 5:</Text> Confirm the transaction —
@@ -124,8 +124,8 @@ const Accordion = () => {
             government-issued ID (Aadhar, PAN card, Passport).
           </Text>
           <Text style={styles.bulletPoint}>
-            <Text style={styles.step}>Step 3:</Text> Take a selfie for identity
-            confirmation.
+            <Text style={styles.step}>Step 3:</Text> Take a Bank account
+            identity confirmation is must for withdraw It take time to 24 hours.
           </Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 4:</Text> Submit your details —
@@ -133,7 +133,7 @@ const Accordion = () => {
           </Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 5:</Text> Once verified, you can
-            withdraw earnings without limits.
+            withdraw earnings without limits and no delay.
           </Text>
         </View>
       ),

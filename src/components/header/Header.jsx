@@ -22,7 +22,7 @@ const Header = ({balance = '0.00'}) => {
 
       <View style={styles.walletContainer}>
         <Text style={styles.accountType}>Real Account</Text>
-        <Text style={styles.balanceText}>Balance: ₹ {balance}</Text>
+        <Text style={styles.balanceText}>Wallet: ₹ {balance}</Text>
       </View>
 
       <Icon name="wallet" size={50} color="#F7931A" />
@@ -54,14 +54,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   accountType: {
-    fontSize: 23,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '600',
     color: '#F7931A',
+    letterSpacing: 1,
   },
   balanceText: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 'bold',
     color: 'white',
+    marginTop: 4,
   },
 });
 

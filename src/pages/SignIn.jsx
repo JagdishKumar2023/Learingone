@@ -1,4 +1,3 @@
-// SignUpModal.js
 import React, {useState} from 'react';
 import {
   View,
@@ -6,138 +5,142 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Modal,
+  Alert,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const SignUpModal = ({visible, onClose, switchToSignIn}) => {
+const Login = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState({});
 
-  const validate = () => {
-    let valid = true;
-    let newErrors = {};
+  const validateEmail = email => /\S+@\S+\.\S+/.test(email);
 
-    if (!email.includes('@')) {
-      newErrors.email = 'Invalid email format';
-      valid = false;
+  const handleLogin = () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'All fields are required.');
+      return;
+    }
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Invalid email format.');
+      return;
     }
     if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-      valid = false;
+      Alert.alert('Error', 'Password must be at least 6 characters.');
+      return;
     }
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
-  };
-
-  const handleSignUp = () => {
-    if (validate()) {
-      console.log('Sign up successful');
-      onClose();
-    }
+    Alert.alert('Success', 'Logged in successfully!');
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.title}>Sign Up</Text>
-          <TextInput
-            placeholder="Email"
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-          />
-          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-          <TextInput
-            placeholder="Password"
-            style={styles.input}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          {errors.password && (
-            <Text style={styles.error}>{errors.password}</Text>
-          )}
-          <TextInput
-            placeholder="Confirm Password"
-            style={styles.input}
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-          {errors.confirmPassword && (
-            <Text style={styles.error}>{errors.confirmPassword}</Text>
-          )}
-          <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-            <Text style={styles.buttonText}>Sign Up</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={switchToSignIn}>
-            <Text style={styles.link}>I have an account</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.close}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
+    <View style={styles.container}>
+      {/* Back Arrow */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}>
+        <Icon name="arrow-left" size={30} color="orange" />
+      </TouchableOpacity>
+
+      {/* Logo Animation */}
+      <LottieView
+        source={require('../assets/logo.json')}
+        autoPlay
+        loop
+        style={styles.lottie}
+      />
+
+      <Text style={styles.title}>Welcome Back</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="gray"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <View style={styles.inputSpacing} />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="gray"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <Text style={styles.loginText}>Login</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+        <Text style={styles.signUpLink}>Don't have an account? Sign Up</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
+export default Login;
+
 const styles = StyleSheet.create({
-  modalOverlay: {
+  container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  modalContent: {
-    width: 300,
+    backgroundColor: '#000',
     padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 15,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+  },
+  lottie: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
+    marginTop: 80,
   },
   title: {
-    fontSize: 22,
+    color: 'orange',
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 40,
   },
   input: {
-    borderBottomWidth: 1,
-    marginBottom: 15,
-    padding: 10,
-  },
-  button: {
-    backgroundColor: '#16C47F',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  buttonText: {
+    width: '100%',
+    backgroundColor: '#1a1a1a',
     color: 'white',
+    borderRadius: 10,
+    padding: 25,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'orange',
+  },
+  inputSpacing: {
+    height: 20,
+  },
+  loginButton: {
+    backgroundColor: 'orange',
+    paddingVertical: 15,
+    paddingHorizontal: 50,
+    borderRadius: 25,
+    shadowColor: 'orange',
+    shadowOffset: {width: 0, height: 5},
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 8,
+    marginTop: 50,
+  },
+  loginText: {
+    color: '#000',
     fontSize: 18,
+    fontWeight: 'bold',
   },
-  link: {
-    color: '#16C47F',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  close: {
-    color: 'red',
-    textAlign: 'center',
-  },
-  error: {
-    color: 'red',
-    fontSize: 12,
-    marginBottom: 10,
+  signUpLink: {
+    color: 'cyan',
+    fontSize: 16,
+    marginTop: 40,
   },
 });
-
-export default SignUpModal;

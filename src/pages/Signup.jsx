@@ -5,183 +5,160 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Modal,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const SignUpPage = ({navigation}) => {
-  const [form, setForm] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [errors, setErrors] = useState({});
+const Login = ({navigation}) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
-  const validate = () => {
-    let valid = true;
-    let newErrors = {};
+  const validateEmail = email => /\S+@\S+\.\S+/.test(email);
 
-    if (!form.username) {
-      newErrors.username = 'Username is required';
-      valid = false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!form.email || !emailRegex.test(form.email)) {
-      newErrors.email = 'Valid email is required';
-      valid = false;
-    }
-
-    if (form.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-      valid = false;
-    }
-
-    if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
-  };
-
-  const handleSignUp = () => {
-    if (validate()) {
-      console.log('Sign Up Successful:', form);
-      navigation.navigate('Login');
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
-      <TextInput
-        placeholder="Username"
-        style={styles.input}
-        value={form.username}
-        onChangeText={text => setForm({...form, username: text})}
-      />
-      {errors.username && <Text style={styles.error}>{errors.username}</Text>}
-
-      <TextInput
-        placeholder="Email"
-        style={styles.input}
-        value={form.email}
-        onChangeText={text => setForm({...form, email: text})}
-      />
-      {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-
-      <TextInput
-        placeholder="Password"
-        style={styles.input}
-        secureTextEntry
-        value={form.password}
-        onChangeText={text => setForm({...form, password: text})}
-      />
-      {errors.password && <Text style={styles.error}>{errors.password}</Text>}
-
-      <TextInput
-        placeholder="Confirm Password"
-        style={styles.input}
-        secureTextEntry
-        value={form.confirmPassword}
-        onChangeText={text => setForm({...form, confirmPassword: text})}
-      />
-      {errors.confirmPassword && (
-        <Text style={styles.error}>{errors.confirmPassword}</Text>
-      )}
-
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Already have an account? Login</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-const LoginPage = ({navigation}) => {
-  const [form, setForm] = useState({email: '', password: ''});
-  const [errors, setErrors] = useState({});
-
-  const validate = () => {
-    let valid = true;
-    let newErrors = {};
-
-    if (!form.email) {
-      newErrors.email = 'Email is required';
-      valid = false;
-    }
-
-    if (!form.password) {
-      newErrors.password = 'Password is required';
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
+  const showModal = message => {
+    setModalMessage(message);
+    setModalVisible(true);
+    setTimeout(() => setModalVisible(false), 2000); // Auto-close modal after 2 seconds
   };
 
   const handleLogin = () => {
-    if (validate()) {
-      console.log('Login Successful:', form);
+    if (!email || !password) {
+      showModal('All fields are required.');
+      return;
     }
+    if (!validateEmail(email)) {
+      showModal('Invalid email format.');
+      return;
+    }
+    if (password.length < 6) {
+      showModal('Password must be at least 6 characters.');
+      return;
+    }
+    showModal('Logged in successfully!');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate('Home')}>
+        <Icon name="arrow-left" size={30} color="orange" />
+      </TouchableOpacity>
+
+      <LottieView
+        source={require('../assets/logo.json')}
+        autoPlay
+        loop
+        style={styles.lottie}
+      />
+
+      <Text style={styles.title}>Welcome Back</Text>
+
       <TextInput
+        style={styles.input}
         placeholder="Email"
-        style={styles.input}
-        value={form.email}
-        onChangeText={text => setForm({...form, email: text})}
+        placeholderTextColor="gray"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
-      {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-
       <TextInput
-        placeholder="Password"
         style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="gray"
+        value={password}
+        onChangeText={setPassword}
         secureTextEntry
-        value={form.password}
-        onChangeText={text => setForm({...form, password: text})}
       />
-      {errors.password && <Text style={styles.error}>{errors.password}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
+
       <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-        <Text style={styles.link}>Don't have an account? Sign Up</Text>
+        <Text style={styles.signUpLink}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
+
+      <Modal animationType="slide" transparent={true} visible={modalVisible}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+        </View>
+      </Modal>
     </View>
   );
 };
 
+export default Login;
+
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: 'white',
     flex: 1,
-    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    padding: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+  },
+  lottie: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
+    marginTop: 80,
   },
   title: {
-    fontSize: 24,
+    color: 'orange',
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    marginBottom: 40,
   },
-  input: {borderBottomWidth: 1, marginBottom: 10, padding: 10},
-  error: {color: 'red', fontSize: 12},
-  button: {
-    backgroundColor: '#16C47F',
-    padding: 15,
+  input: {
+    width: '100%',
+    backgroundColor: '#1a1a1a',
+    color: 'white',
     borderRadius: 10,
-    marginVertical: 10,
+    padding: 25,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'orange',
+    marginBottom: 20,
   },
-  buttonText: {color: 'white', textAlign: 'center', fontWeight: 'bold'},
-  link: {color: 'blue', textAlign: 'center', marginTop: 10},
+  loginButton: {
+    backgroundColor: 'orange',
+    paddingVertical: 15,
+    paddingHorizontal: 50,
+    borderRadius: 25,
+    elevation: 8,
+    marginTop: 20,
+  },
+  loginText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  signUpLink: {
+    color: 'cyan',
+    fontSize: 16,
+    marginTop: 40,
+  },
+  modalContainer: {
+    marginTop: '50%',
+    backgroundColor: 'black',
+    padding: 20,
+    borderRadius: 10,
+    borderColor: 'orange',
+    borderWidth: 1,
+    alignSelf: 'center',
+  },
+  modalText: {
+    color: 'orange',
+    fontSize: 18,
+  },
 });
-
-export {SignUpPage, LoginPage};

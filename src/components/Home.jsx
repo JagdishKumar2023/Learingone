@@ -128,9 +128,11 @@ const Home = () => {
                 Guaranteed Profit is waiting for you
               </Animated.Text>
             </View>
-            <TouchableOpacity style={styles.signUpButton}>
+            <TouchableOpacity
+              style={styles.signUpButton}
+              onPress={() => navigation.navigate('SignUp')}>
               <Text style={styles.signUpText}>Get Started</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>{' '}
           </View>
 
           {/* Circular Motion + Navigation */}

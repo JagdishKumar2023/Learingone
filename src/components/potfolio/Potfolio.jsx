@@ -20,23 +20,20 @@ const {width, height} = Dimensions.get('window');
 const roadmapSteps = [
   {
     image: pot1,
-    title: 'Beginner (6 to 1 year)',
     icon: 'account',
     color: '#4CC9FE',
   },
   {
     image: pot2,
-    title: 'Intermediate (6-12 Months)',
     icon: 'trending-up',
     color: '#00FF00',
   },
   {
     image: pot3,
-    title: 'Advanced (1-3 Years)',
     icon: 'chart-line',
     color: '#FF4500',
   },
-  {image: pot4, title: 'Expert (3-5 Years)', icon: 'trophy', color: '#FFA500'},
+  {image: pot4, icon: 'trophy', color: '#FFA500'},
 ];
 
 const Portfolio = () => {

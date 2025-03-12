@@ -34,10 +34,7 @@ const Comment = () => {
   const renderItem = ({item}) => (
     <View style={styles.slide}>
       <Image source={item} style={styles.image} />
-      <TouchableOpacity
-        style={styles.button}
-        //   onPress={() => alert('Button Clicked!')}
-      >
+      <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Click Me</Text>
       </TouchableOpacity>
     </View>

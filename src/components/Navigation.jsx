@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View, StyleSheet} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Animated, {
   useSharedValue,
@@ -12,8 +13,11 @@ import Game from '../Screen/Game';
 import About from '../Screen/About';
 import Home from './Home';
 import Header from './header/Header';
+import Login from '../pages/SignIn';
+import SignUp from '../pages/Signup';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 // ✅ Animated Tab Icons
 const AnimatedIcon = ({name, color, focused}) => {
@@ -36,13 +40,14 @@ const AnimatedIcon = ({name, color, focused}) => {
   );
 };
 
-// ✅ Main Tab Navigator with Header
-function MyTabs() {
+// ✅ Tab Navigator
+function TabNavigator() {
   return (
     <View style={styles.container}>
       <Header balance="5000" />
       <Tab.Navigator
         screenOptions={({route}) => ({
+          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({color, focused}) => {
             let iconName;
             switch (route.name) {
@@ -80,30 +85,25 @@ function MyTabs() {
   );
 }
 
-// ✅ Styles
+// ✅ Main Navigator (no NavigationContainer here)
+// ✅ Main Navigator (no NavigationContainer here)
+function MyTabs() {
+  return (
+    <Stack.Navigator
+      initialRouteName="TabNavigator"
+      screenOptions={{headerShown: false}}>
+      <Stack.Screen name="TabNavigator" component={TabNavigator} />
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="SignUp" component={SignUp} />
+    </Stack.Navigator>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
-  },
-  header: {
-    height: 100,
-    backgroundColor: '#1c1c1c',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  logo: {
-    width: 45,
-    height: 45,
-  },
-  balanceText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#F7931A',
+    height: 70,
   },
   tabBar: {
     backgroundColor: '#1c1c1c',

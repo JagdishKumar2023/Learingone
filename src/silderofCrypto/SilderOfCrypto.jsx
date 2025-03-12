@@ -20,21 +20,21 @@ const {width, height} = Dimensions.get('window');
 const IMAGE_WIDTH = width * 0.9;
 const IMAGE_HEIGHT = IMAGE_WIDTH * 0.6;
 
-const SilderOfCrypto = () => {
+const SliderOfCrypto = () => {
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
-  const [isScrolling, setIsScrolling] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(true);
 
   useEffect(() => {
     let interval;
-    if (isScrolling) {
+    if (isScrolling && flatListRef.current) {
       interval = setInterval(() => {
         nextSlide();
       }, 2500);
     }
     return () => clearInterval(interval);
-  }, [isScrolling]);
+  }, [isScrolling, currentIndex]);
 
   const nextSlide = () => {
     const nextIndex = (currentIndex + 1) % images.length;
@@ -54,17 +54,18 @@ const SilderOfCrypto = () => {
     setCurrentIndex(prevIndex);
   };
 
-  const handleScroll = event => {
-    const newIndex = Math.round(
-      event.nativeEvent.contentOffset.x / IMAGE_WIDTH,
-    );
-    setCurrentIndex(newIndex);
-  };
-
-  const restartAutoScroll = () => {
-    setIsScrolling(false);
-    setTimeout(() => setIsScrolling(true), 1000);
-  };
+  const handleScroll = Animated.event(
+    [{nativeEvent: {contentOffset: {x: scrollX}}}],
+    {
+      useNativeDriver: false,
+      listener: event => {
+        const newIndex = Math.round(
+          event.nativeEvent.contentOffset.x / IMAGE_WIDTH,
+        );
+        setCurrentIndex(newIndex);
+      },
+    },
+  );
 
   return (
     <View style={styles.container}>
@@ -80,7 +81,7 @@ const SilderOfCrypto = () => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(_, index) => index.toString()}
         renderItem={({item}) => (
           <View style={styles.imageWrapper}>
             <Image source={item} style={styles.image} />
@@ -89,11 +90,17 @@ const SilderOfCrypto = () => {
       />
 
       <View style={styles.controls}>
-        <TouchableOpacity onPress={prevSlide} style={styles.iconButton}>
+        <TouchableOpacity
+          onPress={prevSlide}
+          style={styles.iconButton}
+          accessibilityLabel="Previous Slide">
           <Icon name="chevron-left" size={24} color="white" />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={nextSlide} style={styles.iconButton}>
+        <TouchableOpacity
+          onPress={nextSlide}
+          style={styles.iconButton}
+          accessibilityLabel="Next Slide">
           <Icon name="chevron-right" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -101,7 +108,7 @@ const SilderOfCrypto = () => {
   );
 };
 
-export default SilderOfCrypto;
+export default SliderOfCrypto;
 
 const styles = StyleSheet.create({
   container: {
@@ -114,11 +121,11 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: width * 0.06,
     fontWeight: 'bold',
-    color: 'orange', // Changed to orange
+    color: 'orange',
     marginBottom: height * 0.015,
   },
   title: {
-    color: 'orange', // Changed to orange
+    color: 'orange',
   },
   imageWrapper: {
     width: IMAGE_WIDTH,
