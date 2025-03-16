@@ -75,7 +75,10 @@ const Game = () => {
               setIsModalVisible={setIsModalVisible}
               colors={selectedColors}
             />
-            <BigSmallMini setIsModalVisible={setIsModalVisible} />
+            <BigSmallMini
+              setIsModalVisible={setIsModalVisible}
+              colors={selectedColors}
+            />
           </View>
         </View>
         <View style={styles.buttonRow}>
@@ -90,6 +93,7 @@ const Game = () => {
         <Modal
           onClose={() => setIsModalVisible(false)}
           modalColor={modalColor}
+          colors={selectedColors}
         />
       )}
     </>

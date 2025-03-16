@@ -6,26 +6,35 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  ScrollView,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const Login = ({navigation}) => {
+const SignUp = ({navigation}) => {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // eslint-disable-next-line no-shadow
   const validateEmail = email => /\S+@\S+\.\S+/.test(email);
+  // eslint-disable-next-line no-shadow
+  const validateMobile = mobile => /^[0-9]{10}$/.test(mobile);
 
   const showModal = message => {
     setModalMessage(message);
     setModalVisible(true);
-    setTimeout(() => setModalVisible(false), 2000); // Auto-close modal after 2 seconds
+    setTimeout(() => setModalVisible(false), 2000);
   };
 
-  const handleLogin = () => {
-    if (!email || !password) {
+  const handleSignUp = () => {
+    if (!username || !email || !mobile || !password || !confirmPassword) {
       showModal('All fields are required.');
       return;
     }
@@ -33,18 +42,34 @@ const Login = ({navigation}) => {
       showModal('Invalid email format.');
       return;
     }
+    if (!validateMobile(mobile)) {
+      showModal('Invalid mobile number.');
+      return;
+    }
     if (password.length < 6) {
       showModal('Password must be at least 6 characters.');
       return;
     }
-    showModal('Logged in successfully!');
+    if (password !== confirmPassword) {
+      showModal('Passwords do not match.');
+      return;
+    }
+    showModal('Account created successfully!');
+    setTimeout(() => {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Login'}],
+      });
+    }, 1500);
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate('Home')}>
+        onPress={() =>
+          navigation.reset({index: 0, routes: [{name: 'TabNavigator'}]})
+        }>
         <Icon name="arrow-left" size={30} color="orange" />
       </TouchableOpacity>
 
@@ -55,8 +80,15 @@ const Login = ({navigation}) => {
         style={styles.lottie}
       />
 
-      <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.title}>Create Account</Text>
 
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        placeholderTextColor="gray"
+        value={username}
+        onChangeText={setUsername}
+      />
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -68,19 +100,54 @@ const Login = ({navigation}) => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Mobile Number"
         placeholderTextColor="gray"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
+        value={mobile}
+        onChangeText={setMobile}
+        keyboardType="phone-pad"
       />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Password"
+          placeholderTextColor="gray"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Icon
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={20}
+            color="orange"
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Confirm Password"
+          placeholderTextColor="gray"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry={!showConfirmPassword}
+        />
+        <TouchableOpacity
+          onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+          <Icon
+            name={showConfirmPassword ? 'eye-off' : 'eye'}
+            size={24}
+            color="orange"
+          />
+        </TouchableOpacity>
+      </View>
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginText}>Login</Text>
+      <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
+        <Text style={styles.signUpText}>Sign Up</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-        <Text style={styles.signUpLink}>Don't have an account? Sign Up</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.loginLink}>Already have an account? SignIn</Text>
       </TouchableOpacity>
 
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
@@ -88,18 +155,19 @@ const Login = ({navigation}) => {
           <Text style={styles.modalText}>{modalMessage}</Text>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 
-export default Login;
+export default SignUp;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     backgroundColor: '#000',
     padding: 20,
+    justifyContent: 'center',
   },
   backButton: {
     position: 'absolute',
@@ -108,14 +176,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   lottie: {
-    width: 200,
-    height: 200,
+    width: 250,
+    height: 250,
     marginBottom: 20,
-    marginTop: 80,
   },
   title: {
     color: 'orange',
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 40,
   },
@@ -124,13 +191,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     color: 'white',
     borderRadius: 10,
-    padding: 25,
+    padding: 20,
     fontSize: 16,
     borderWidth: 1,
     borderColor: 'orange',
-    marginBottom: 20,
+    marginBottom: 15,
   },
-  loginButton: {
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'orange',
+    marginBottom: 15,
+    width: '100%',
+  },
+  passwordInput: {
+    flex: 1,
+    color: 'white',
+    padding: 23,
+    fontSize: 16,
+  },
+  signUpButton: {
     backgroundColor: 'orange',
     paddingVertical: 15,
     paddingHorizontal: 50,
@@ -138,15 +221,15 @@ const styles = StyleSheet.create({
     elevation: 8,
     marginTop: 20,
   },
-  loginText: {
+  signUpText: {
     color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  signUpLink: {
+  loginLink: {
     color: 'cyan',
     fontSize: 16,
-    marginTop: 40,
+    marginTop: 30,
   },
   modalContainer: {
     marginTop: '50%',

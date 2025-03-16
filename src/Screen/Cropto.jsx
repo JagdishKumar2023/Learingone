@@ -6,7 +6,6 @@ import {
   Text,
   FlatList,
   Dimensions,
-  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CroptoSilder from '../croptosilder/CroptoSilder';
@@ -29,7 +28,6 @@ const cryptoIcons = [
 ];
 
 const Crypto = () => {
-  const scrollX = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef(null);
 
   useEffect(() => {

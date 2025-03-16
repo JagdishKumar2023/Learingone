@@ -1,5 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, StyleSheet} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -11,20 +12,22 @@ import Animated, {
 import Crypto from '../Screen/Cropto';
 import Game from '../Screen/Game';
 import About from '../Screen/About';
-import Home from './Home';
+import Home from '../Screen/Home';
 import Header from './header/Header';
 import Login from '../pages/SignIn';
 import SignUp from '../pages/Signup';
+import SplashScreen from '../SpleshScreen/SpleshScreen';
+import Onboard from '../onboard/Onboard'; // Added Onboarding screen
+import UpiPayment from '../upipayment/UpiPayment';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// ✅ Animated Tab Icons
 const AnimatedIcon = ({name, color, focused}) => {
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
 
-  useEffect(() => {
+  React.useEffect(() => {
     scale.value = withSpring(focused ? 1.3 : 1);
     translateY.value = withSpring(focused ? -8 : 0);
   }, [focused]);
@@ -40,7 +43,6 @@ const AnimatedIcon = ({name, color, focused}) => {
   );
 };
 
-// ✅ Tab Navigator
 function TabNavigator() {
   return (
     <View style={styles.container}>
@@ -60,7 +62,7 @@ function TabNavigator() {
               case 'game':
                 iconName = 'gamepad-variant';
                 break;
-              case 'about':
+              case 'profile':
                 iconName = 'account';
                 break;
               default:
@@ -79,22 +81,43 @@ function TabNavigator() {
         <Tab.Screen name="Home" component={Home} />
         <Tab.Screen name="cropto" component={Crypto} />
         <Tab.Screen name="game" component={Game} />
-        <Tab.Screen name="about" component={About} />
+        <Tab.Screen name="profile" component={About} />
       </Tab.Navigator>
     </View>
   );
 }
 
-// ✅ Main Navigator (no NavigationContainer here)
-// ✅ Main Navigator (no NavigationContainer here)
 function MyTabs() {
+  const [isFirstTime, setIsFirstTime] = useState(null);
+
+  useEffect(() => {
+    checkFirstTime();
+  }, []);
+
+  const checkFirstTime = async () => {
+    try {
+      const firstTime = await AsyncStorage.getItem('isFirstTime');
+      console.log('isFirstTime value:', firstTime);
+      setIsFirstTime(true); // Show onboard if 'isFirstTime' is null firstTime !== 'false'
+    } catch (error) {
+      console.error('Error reading AsyncStorage:', error);
+    }
+  };
+
+  if (isFirstTime === null) {
+    return null; // Avoid flickering — add a loading spinner if needed
+  }
+
   return (
     <Stack.Navigator
-      initialRouteName="TabNavigator"
+      initialRouteName={isFirstTime ? 'Onboarding' : 'SplashScreen'}
       screenOptions={{headerShown: false}}>
+      <Stack.Screen name="Onboarding" component={Onboard} />
+      <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="TabNavigator" component={TabNavigator} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Screen name="UpiPayment" component={UpiPayment} />
     </Stack.Navigator>
   );
 }

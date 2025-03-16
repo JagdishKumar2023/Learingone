@@ -5,43 +5,58 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
+  Modal,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const Login = ({navigation}) => {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
   const validateEmail = email => /\S+@\S+\.\S+/.test(email);
+  const validatePhone = phone => /^[6-9]\d{9}$/.test(phone); // Validates 10-digit Indian numbers starting with 6-9
+
+  const showModal = message => {
+    setModalMessage(message);
+    setModalVisible(true);
+    setTimeout(() => setModalVisible(false), 1000); // Auto-close modal after 1 second
+  };
 
   const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'All fields are required.');
+    if (!identifier || !password) {
+      showModal('All fields are required.');
       return;
     }
-    if (!validateEmail(email)) {
-      Alert.alert('Error', 'Invalid email format.');
+    if (!validateEmail(identifier) && !validatePhone(identifier)) {
+      showModal('Enter a valid email or mobile number.');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters.');
+      showModal('Password must be at least 6 characters.');
       return;
     }
-    Alert.alert('Success', 'Logged in successfully!');
+    showModal('Logged in successfully!');
+    setTimeout(() => {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'TabNavigator'}],
+      });
+    }, 1000);
   };
 
   return (
     <View style={styles.container}>
-      {/* Back Arrow */}
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.goBack()}>
+        onPress={() =>
+          navigation.reset({index: 0, routes: [{name: 'TabNavigator'}]})
+        }>
         <Icon name="arrow-left" size={30} color="orange" />
       </TouchableOpacity>
 
-      {/* Logo Animation */}
       <LottieView
         source={require('../assets/logo.json')}
         autoPlay
@@ -49,18 +64,17 @@ const Login = ({navigation}) => {
         style={styles.lottie}
       />
 
-      <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.title}>Welcome to Infinity Prime</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Email or Mobile Number"
         placeholderTextColor="gray"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
+        value={identifier}
+        onChangeText={setIdentifier}
+        keyboardType="default"
         autoCapitalize="none"
       />
-      <View style={styles.inputSpacing} />
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -77,6 +91,12 @@ const Login = ({navigation}) => {
       <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
         <Text style={styles.signUpLink}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
+
+      <Modal animationType="slide" transparent={true} visible={modalVisible}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -86,8 +106,9 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: '#121212',
     padding: 20,
   },
   backButton: {
@@ -99,48 +120,54 @@ const styles = StyleSheet.create({
   lottie: {
     width: 200,
     height: 200,
-    marginBottom: 20,
-    marginTop: 80,
+    marginBottom: 30,
   },
   title: {
     color: 'orange',
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 40,
+    marginBottom: 50,
   },
   input: {
     width: '100%',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#1f1f1f',
     color: 'white',
-    borderRadius: 10,
-    padding: 25,
-    fontSize: 16,
+    borderRadius: 12,
+    padding: 18,
+    fontSize: 18,
     borderWidth: 1,
     borderColor: 'orange',
-  },
-  inputSpacing: {
-    height: 20,
+    marginBottom: 20,
   },
   loginButton: {
     backgroundColor: 'orange',
-    paddingVertical: 15,
-    paddingHorizontal: 50,
-    borderRadius: 25,
-    shadowColor: 'orange',
-    shadowOffset: {width: 0, height: 5},
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 8,
-    marginTop: 50,
+    paddingVertical: 16,
+    paddingHorizontal: 60,
+    borderRadius: 30,
+    elevation: 10,
+    marginTop: 20,
   },
   loginText: {
     color: '#000',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   signUpLink: {
     color: 'cyan',
-    fontSize: 16,
-    marginTop: 40,
+    fontSize: 18,
+    marginTop: 30,
+  },
+  modalContainer: {
+    marginTop: '50%',
+    backgroundColor: '#1f1f1f',
+    padding: 25,
+    borderRadius: 12,
+    borderColor: 'orange',
+    borderWidth: 1,
+    alignSelf: 'center',
+  },
+  modalText: {
+    color: 'orange',
+    fontSize: 20,
   },
 });

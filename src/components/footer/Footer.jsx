@@ -76,7 +76,6 @@ const Footer = () => {
 
         <View style={styles.contactContainer}>
           <Text style={styles.sectionTitle}>Contact Us</Text>
-          <Text style={styles.sectionText}>Phone: +91 1234567890</Text>
         </View>
 
         <View style={styles.subscriptionContainer}>

@@ -87,7 +87,7 @@ const Accordion = () => {
             type:
           </Text>
           <Text style={styles.subText}>
-            • Color Rings (Green, Red, Violet): Payout — Red/Green: 2x, Violet:
+            • Color Rings (Green, Red, Violet) Payout — Red Green: 2x, Violet:
             2.8x
           </Text>
           <Text style={styles.subText}>
@@ -95,6 +95,9 @@ const Accordion = () => {
           </Text>
           <Text style={styles.subText}>
             • Sizing (Big/Mini/Small): Payout — 2x
+          </Text>
+          <Text style={styles.subText}>
+            • This payout is dynamic it chnange as market condition.
           </Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 3:</Text> Place your investment and

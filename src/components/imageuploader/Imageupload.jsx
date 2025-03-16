@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center', // Ensures the content is vertically centered
     padding: 15,
-    marginTop: 15,
+    marginTop: 60,
   },
   title: {
     fontSize: 24,
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     borderWidth: 2,
     borderColor: '#ddd',
-    borderRadius: 50,
+    borderRadius: 20,
     padding: 5,
     width: 120,
     height: 120,
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 130,
     height: 130,
-    borderRadius: 30, // Circular image
+    borderRadius: 10, // Circular image
   },
   placeholderText: {
     color: '#aaa',

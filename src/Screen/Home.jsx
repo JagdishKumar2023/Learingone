@@ -10,13 +10,13 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {useNavigation} from '@react-navigation/native';
-import Card from './card/Card';
+import Card from '../components/card/Card';
 import Info from '../components/info/Info';
-import Potfolio from './potfolio/Potfolio';
+import Potfolio from '../components/potfolio/Potfolio';
 import FeedBack from './../components/FeedBack/FeedBack';
-import Footer from './footer/Footer';
-import CustomerReview from './customerreview/CustomerReview';
-import Accordion from './accordion/Accordion';
+import Footer from '../components/footer/Footer';
+import CustomerReview from '../components/customerreview/CustomerReview';
+import Accordion from '../components/accordion/Accordion';
 
 const {width, height} = Dimensions.get('window');
 
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   circleText: {
-    color: 'cyan',
+    color: '#fff',
     fontSize: width * 0.06,
     fontWeight: 'bold',
   },

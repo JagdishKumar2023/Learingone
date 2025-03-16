@@ -35,8 +35,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
-    marginTop: 15,
-    marginBottom: 20,
+    marginTop: 80,
     marginHorizontal: 20,
   },
   balanceLabel: {

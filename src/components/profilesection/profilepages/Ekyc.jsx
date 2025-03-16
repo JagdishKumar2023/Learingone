@@ -133,7 +133,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
     padding: 20,
-    alignItems: 'center',
   },
   header: {
     fontSize: 28,

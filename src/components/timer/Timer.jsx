@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function Timer({onFiveSecondsRemaining}) {
   const [selectedTime, setSelectedTime] = useState(30); // Default 30 sec
@@ -8,10 +9,10 @@ export default function Timer({onFiveSecondsRemaining}) {
   const [showBlink, setShowBlink] = useState(false);
 
   const timeOptions = [
-    {label: '30 sec', value: 30, warningThreshold: 15},
-    {label: '1 min', value: 60, warningThreshold: 25},
-    {label: '3 min', value: 180, warningThreshold: 40},
-    {label: '5 min', value: 300, warningThreshold: 60},
+    {label: '30 sec', value: 30, warningThreshold: 15, icon: 'clock-fast'},
+    {label: '1 min', value: 60, warningThreshold: 25, icon: 'clock-outline'},
+    {label: '3 min', value: 180, warningThreshold: 40, icon: 'clock'},
+    {label: '5 min', value: 300, warningThreshold: 60, icon: 'clock-time-five'},
   ];
 
   useEffect(() => {
@@ -95,6 +96,12 @@ export default function Timer({onFiveSecondsRemaining}) {
               selectedTime === item.value && styles.selectedOption,
             ]}
             onPress={() => handleTimeSelection(item.value)}>
+            <Icon
+              name={item.icon}
+              size={24}
+              color="white"
+              style={styles.icon}
+            />
             <Text style={styles.optionText}>{item.label}</Text>
           </TouchableOpacity>
         )}
@@ -127,7 +134,7 @@ export default function Timer({onFiveSecondsRemaining}) {
           </View>
         </View>
       </View>
-      {showBlink && <Text style={styles.blinkText}>Order Fast</Text>}
+      {showBlink && <Text style={styles.blinkText}>ORDER FAST ✨</Text>}
     </View>
   );
 }
@@ -145,6 +152,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 18,
+    fontWeight: 'bold', // Make label bold
     color: 'white',
     marginBottom: 5,
   },
@@ -154,6 +162,8 @@ const styles = StyleSheet.create({
   },
   timeOption: {
     backgroundColor: '#444',
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginHorizontal: 5,
@@ -162,8 +172,12 @@ const styles = StyleSheet.create({
   selectedOption: {
     backgroundColor: '#f39c12',
   },
+  icon: {
+    // marginRight: 2,
+  },
   optionText: {
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: 'bold', // Bold text
     color: 'white',
   },
   timerDisplay: {
@@ -173,6 +187,7 @@ const styles = StyleSheet.create({
   },
   pnText: {
     color: 'white',
+    fontWeight: 'bold', // Make PN text bold
   },
   timeRemainingContainer: {
     flexDirection: 'column',
@@ -180,6 +195,7 @@ const styles = StyleSheet.create({
   },
   timeRemainingText: {
     color: 'white',
+    fontWeight: 'bold', // Make "Time Remaining" bold
     textAlign: 'center',
   },
   timerContainer: {
@@ -189,8 +205,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   timerBox: {
-    width: 50,
-    height: 60,
+    width: 60,
+    height: 70,
     backgroundColor: '#333',
     justifyContent: 'center',
     alignItems: 'center',
@@ -198,22 +214,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   timerText: {
-    fontSize: 28,
+    fontSize: 32,
+    fontWeight: 'bold', // Make numbers bold
     color: 'white',
-    fontWeight: 'bold',
   },
   separator: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: 'bold', // Bold separator
     color: '#fff',
   },
   warningText: {
-    color: 'red',
+    color: 'yellow', // Yellow warning text
   },
   blinkText: {
-    fontSize: 20,
+    fontSize: 24, // Larger text
+    fontWeight: 'bold', // Bold blinking text
     color: 'yellow',
-    fontWeight: 'bold',
     position: 'absolute',
     right: 20,
     top: 20,
