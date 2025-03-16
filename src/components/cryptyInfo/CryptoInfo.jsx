@@ -19,28 +19,29 @@ const images = [cryptoInfo1, cryptoInfo2, cryptoInfo3, cryptoInfo4];
 
 const CryptoInfo = () => {
   const flatListRef = useRef(null);
-  const fadeAnim = useRef(new Animated.Value(1)).current; // Start at 1 to prevent flicker
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      let nextIndex = (currentIndex + 1) % images.length;
+      const nextIndex = (currentIndex + 1) % images.length;
+      setCurrentIndex(nextIndex); // Move index before animation
 
-      // Reset animation before starting new fade-in
-      fadeAnim.setValue(0);
-
+      fadeAnim.setValue(0.5);
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500, // Smooth fade transition
+        duration: 700, // Smoother fade-in effect
         useNativeDriver: true,
-      }).start(() => {
-        setCurrentIndex(nextIndex);
-        flatListRef.current?.scrollToIndex({index: nextIndex, animated: true});
+      }).start();
+
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
       });
-    }, 3000); // Auto-slide every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [currentIndex]);
+  }, [currentIndex, fadeAnim]);
 
   const handleScroll = event => {
     const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
@@ -65,8 +66,8 @@ const CryptoInfo = () => {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        scrollEnabled
         onMomentumScrollEnd={handleScroll}
+        scrollEnabled
       />
 
       {/* Pagination Dots */}
@@ -114,7 +115,19 @@ const styles = StyleSheet.create({
   pagination: {
     flexDirection: 'row',
     position: 'absolute',
-    bottom: 30,
+    bottom: 20,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#888',
+    marginHorizontal: 5,
+  },
+  activeDot: {
+    backgroundColor: 'orange',
+    width: 12,
+    height: 12,
   },
 });
 

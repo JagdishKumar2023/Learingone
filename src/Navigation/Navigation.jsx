@@ -13,12 +13,11 @@ const Stack = createNativeStackNavigator();
 function RootStack() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="MyTab">
-        <Stack.Screen
-          name="MyTab"
-          component={MyTabs}
-          options={{headerShown: false}}
-        />
+      <Stack.Navigator
+        initialRouteName="MyTab"
+        screenOptions={{headerShown: false}} // Removes all headers and back buttons
+      >
+        <Stack.Screen name="MyTab" component={MyTabs} />
         <Stack.Screen name="My Order" component={MyOrder} />
         <Stack.Screen name="Transaction Details" component={Transactions} />
         <Stack.Screen name="eKYC" component={Ekyc} />

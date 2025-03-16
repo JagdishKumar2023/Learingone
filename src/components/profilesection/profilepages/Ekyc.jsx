@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Alert,
   Image,
   Modal,
 } from 'react-native';
@@ -22,6 +21,7 @@ const Ekyc = () => {
     bank: null,
   });
   const [isModalVisible, setModalVisible] = useState(false);
+  const [alertModal, setAlertModal] = useState({visible: false, message: ''});
 
   const options = [
     {id: '1', name: 'Upload Photo', key: 'photo', required: true},
@@ -41,9 +41,18 @@ const Ekyc = () => {
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
       } else {
-        const uri = response.assets?.[0]?.uri;
-        if (uri) {
-          setUploadedImages(prev => ({...prev, [key]: uri}));
+        const file = response.assets?.[0];
+        if (file) {
+          const fileSizeInKB = file.fileSize / 1024; // Convert bytes to KB
+          if (fileSizeInKB > 30) {
+            setAlertModal({
+              visible: true,
+              message: 'Image size must be under 30KB!',
+            });
+            return;
+          }
+
+          setUploadedImages(prev => ({...prev, [key]: file.uri}));
           setVerificationStatus(prev => ({...prev, [key]: 'Verified'}));
         }
       }
@@ -53,7 +62,10 @@ const Ekyc = () => {
   const validateUploads = () => {
     const {photo, aadhaar, bank} = verificationStatus;
     if (!photo || !aadhaar || !bank) {
-      Alert.alert('Error', 'All required documents must be uploaded.');
+      setAlertModal({
+        visible: true,
+        message: 'All required documents must be uploaded.',
+      });
     } else {
       setModalVisible(true); // Show confirmation popup
     }
@@ -104,7 +116,7 @@ const Ekyc = () => {
         <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
 
-      {/* Modal for Confirmation */}
+      {/* Success Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -120,6 +132,24 @@ const Ekyc = () => {
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}>
               <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Alert Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={alertModal.visible}
+        onRequestClose={() => setAlertModal({visible: false, message: ''})}>
+        <View style={styles.modalContainer}>
+          <View style={styles.alertBox}>
+            <Text style={styles.alertText}>{alertModal.message}</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setAlertModal({visible: false, message: ''})}>
+              <Text style={styles.closeButtonText}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -206,6 +236,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 20,
+  },
+  alertBox: {
+    backgroundColor: '#FF4444',
+    padding: 20,
+    borderRadius: 15,
+    width: '85%',
+    alignItems: 'center',
+  },
+  alertText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 15,
   },
   closeButton: {
     backgroundColor: '#FFA500',

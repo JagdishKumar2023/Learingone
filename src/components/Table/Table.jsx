@@ -1,57 +1,90 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Table = () => {
-  const headers = ['ID', 'Name', 'Age', 'Country'];
+  const headers = ['Period', 'Number', 'Color', 'Size'];
   const data = [
-    {id: 1, name: 'John', age: 25, country: 'USA'},
-    {id: 2, name: 'Alice', age: 30, country: 'UK'},
-    {id: 3, name: 'Bob', age: 28, country: 'Canada'},
-    {id: 4, name: 'Emma', age: 22, country: 'Australia'},
-    {id: 5, name: 'Liam', age: 26, country: 'Germany'},
-    {id: 6, name: 'Olivia', age: 27, country: 'France'},
-    {id: 7, name: 'Noah', age: 24, country: 'India'},
-    {id: 8, name: 'Sophia', age: 29, country: 'Brazil'},
-    {id: 9, name: 'William', age: 31, country: 'Italy'},
-    {id: 10, name: 'James', age: 34, country: 'Spain'},
-    {id: 11, name: 'Emily', age: 23, country: 'Japan'},
-    {id: 12, name: 'Michael', age: 32, country: 'Russia'},
+    {period: '202403', number: 8, color: 'Red', size: 'Large'},
+    {period: '202404', number: 3, color: 'Blue', size: 'Small'},
+    {period: '202405', number: 7, color: 'Green', size: 'Large'},
+    {period: '202406', number: 2, color: 'Yellow', size: 'Small'},
+    {period: '202407', number: 9, color: 'Purple', size: 'Large'},
+    {period: '202408', number: 1, color: 'Orange', size: 'Small'},
+    {period: '202409', number: 6, color: 'Pink', size: 'Large'},
+    {period: '202410', number: 4, color: 'Cyan', size: 'Small'},
   ];
 
-  const colors = ['#F44336', '#F44336', '#F44336', '#F44336'];
-  const itemsPerPage = 8;
+  const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(0);
-
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const displayedData = data.slice(
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage,
   );
 
+  const getIcon = (column, value) => {
+    switch (column) {
+      case 'Period':
+        return <Icon name="calendar" size={18} color="#FF9800" />;
+      case 'Number':
+        return <Icon name="hashtag" size={18} color="#4CAF50" />;
+      case 'Color':
+        return (
+          <Icon name="paint-brush" size={18} color={value.toLowerCase()} />
+        );
+      case 'Size':
+        return (
+          <Icon
+            name={value === 'Large' ? 'expand' : 'compress'}
+            size={18}
+            color="#E91E63"
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getBackgroundColor = color => {
+    switch (color.toLowerCase()) {
+      case 'red':
+        return '#FFCDD2'; // Light red
+      case 'green':
+        return '#C8E6C9'; // Light green
+      default:
+        return 'transparent';
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Table Header */}
-      <View style={styles.rowHeader}>
+      <LinearGradient colors={['#FF9800', '#F57C00']} style={styles.rowHeader}>
         {headers.map((header, index) => (
           <Text key={index} style={styles.header}>
             {header}
           </Text>
         ))}
-      </View>
+      </LinearGradient>
 
-      {/* Scrollable Table Data */}
+      {/* Table Data */}
       <View style={styles.scrollContainer}>
         {displayedData.map((item, rowIndex) => (
           <View key={rowIndex} style={styles.row}>
-            {Object.values(item).map((value, colIndex) => (
-              <Text
+            {Object.entries(item).map(([key, value], colIndex) => (
+              <View
                 key={colIndex}
                 style={[
                   styles.cell,
-                  {backgroundColor: colors[colIndex % colors.length]},
+                  key === 'Color'
+                    ? {backgroundColor: getBackgroundColor(value)}
+                    : {},
                 ]}>
-                {value}
-              </Text>
+                {getIcon(key, value)}
+                <Text style={styles.cellText}> {value}</Text>
+              </View>
             ))}
           </View>
         ))}
@@ -66,7 +99,7 @@ const Table = () => {
             currentPage === 0 && styles.disabledButton,
           ]}
           disabled={currentPage === 0}>
-          <Text style={styles.pageText}>{'<'}</Text>
+          <Icon name="chevron-left" size={16} color="white" />
         </TouchableOpacity>
         <Text style={styles.pageIndicator}>
           {currentPage + 1} / {totalPages}
@@ -80,7 +113,7 @@ const Table = () => {
             currentPage === totalPages - 1 && styles.disabledButton,
           ]}
           disabled={currentPage === totalPages - 1}>
-          <Text style={styles.pageText}>{'>'}</Text>
+          <Icon name="chevron-right" size={16} color="white" />
         </TouchableOpacity>
       </View>
     </View>
@@ -94,7 +127,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '100%',
     flex: 1,
-    // height: 348,
     backgroundColor: 'black',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 5},
@@ -104,15 +136,17 @@ const styles = StyleSheet.create({
   },
   rowHeader: {
     flexDirection: 'row',
-    backgroundColor: '#FF9800',
     paddingVertical: 12,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderColor: '#ccc',
+    paddingVertical: 10,
   },
   header: {
     flex: 1,
@@ -123,38 +157,32 @@ const styles = StyleSheet.create({
   },
   cell: {
     flex: 1,
-    textAlign: 'center',
-    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  cellText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
-    borderRadius: 8,
-    margin: 4,
-  },
-  scrollContainer: {
-    // maxHeight: 500,
+    marginLeft: 6,
   },
   paginationContainer: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 5, // Reduced padding
-    height: 40, // Set a fixed height to minimize unnecessary space
+    paddingVertical: 10,
   },
-
   pageButton: {
     padding: 10,
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     backgroundColor: 'orange',
     borderRadius: 5,
   },
   disabledButton: {
     backgroundColor: '#ccc',
-  },
-  pageText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
   pageIndicator: {
     fontSize: 16,

@@ -2,18 +2,21 @@ import React, {useState, useRef, useCallback} from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet';
+import Slider from '@react-native-community/slider';
+import Animated, {useSharedValue, withSpring} from 'react-native-reanimated';
 
 const BetModal = ({onClose, modalColor = '#fff'}) => {
   const bottomSheetRef = useRef(null);
-  const [betAmount, setBetAmount] = useState(null);
+  const [betAmount, setBetAmount] = useState(200);
+  const [quantity, setQuantity] = useState(1);
   const [customAmount, setCustomAmount] = useState('');
-  const [multiplier, setMultiplier] = useState(1);
+  const buttonTranslateX = useSharedValue(0);
 
   const handleSheetChanges = useCallback(
     index => {
@@ -24,19 +27,9 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
     [onClose],
   );
 
-  const predefinedAmounts = [200, 500, 2000, 5000];
-  const multipliers = [1, 2, 5, 10];
-
   const placeBet = () => {
-    const amount =
-      betAmount === 'custom' ? parseFloat(customAmount) : betAmount;
-    if (amount && multiplier) {
-      // Process the bet with the selected amount and multiplier
-      console.log(`Placing bet of ${amount} with multiplier x${multiplier}`);
-      bottomSheetRef.current.close();
-    } else {
-      alert('Please enter a valid amount and select a multiplier.');
-    }
+    console.log(`Placing bet: Amount: ${betAmount}, Quantity: ${quantity}`);
+    bottomSheetRef.current.close();
   };
 
   return (
@@ -44,64 +37,57 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
       <BottomSheet
         ref={bottomSheetRef}
         index={0}
-        snapPoints={['50%']}
+        snapPoints={['60%']}
         onChange={handleSheetChanges}
         enablePanDownToClose>
         <BottomSheetView
           style={[styles.contentContainer, {backgroundColor: modalColor}]}>
-          <Text style={styles.title}>Place Your Bet</Text>
+          <Text style={styles.title}>Advanced Bet Placement</Text>
 
           <Text style={styles.subtitle}>Select Amount:</Text>
-          <View style={styles.buttonContainer}>
-            {predefinedAmounts.map(amount => (
-              <TouchableOpacity
-                key={amount}
-                style={[
-                  styles.amountButton,
-                  betAmount === amount && styles.selectedButton,
-                ]}
-                onPress={() => setBetAmount(amount)}>
-                <Text style={styles.buttonText}>{amount}</Text>
-              </TouchableOpacity>
-            ))}
+          <Slider
+            style={styles.slider}
+            minimumValue={100}
+            maximumValue={5000}
+            step={100}
+            value={betAmount}
+            onValueChange={setBetAmount}
+            minimumTrackTintColor="#00f"
+            maximumTrackTintColor="#ccc"
+          />
+          <Text style={styles.sliderValue}>₹{betAmount}</Text>
+
+          <Text style={styles.subtitle}>Select Quantity:</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={1}
+            maximumValue={20}
+            step={1}
+            value={quantity}
+            onValueChange={setQuantity}
+            minimumTrackTintColor="#f39c12"
+            maximumTrackTintColor="#ccc"
+          />
+          <Text style={styles.sliderValue}>x{quantity}</Text>
+
+          <Animated.View
+            style={[
+              styles.animatedButton,
+              {transform: [{translateX: buttonTranslateX}]},
+            ]}>
             <TouchableOpacity
-              style={[
-                styles.amountButton,
-                betAmount === 'custom' && styles.selectedButton,
-              ]}
-              onPress={() => setBetAmount('custom')}>
-              <Text style={styles.buttonText}>Custom</Text>
+              style={styles.placeBetButton}
+              activeOpacity={0.7}
+              onPress={() => {
+                buttonTranslateX.value = withSpring(50);
+                setTimeout(() => {
+                  placeBet();
+                  buttonTranslateX.value = withSpring(0);
+                }, 500);
+              }}>
+              <Text style={styles.placeBetButtonText}>Slide to Place Bet</Text>
             </TouchableOpacity>
-          </View>
-
-          {betAmount === 'custom' && (
-            <TextInput
-              style={styles.input}
-              placeholder="Enter custom amount"
-              keyboardType="numeric"
-              value={customAmount}
-              onChangeText={setCustomAmount}
-            />
-          )}
-
-          <Text style={styles.subtitle}>Select Multiplier:</Text>
-          <View style={styles.buttonContainer}>
-            {multipliers.map(mult => (
-              <TouchableOpacity
-                key={mult}
-                style={[
-                  styles.multiplierButton,
-                  multiplier === mult && styles.selectedButton,
-                ]}
-                onPress={() => setMultiplier(mult)}>
-                <Text style={styles.buttonText}>x{mult}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity style={styles.placeBetButton} onPress={placeBet}>
-            <Text style={styles.placeBetButtonText}>Place Bet</Text>
-          </TouchableOpacity>
+          </Animated.View>
         </BottomSheetView>
       </BottomSheet>
     </GestureHandlerRootView>
@@ -127,42 +113,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginVertical: 10,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginBottom: 20,
+  slider: {
+    width: '90%',
+    height: 40,
   },
-  amountButton: {
-    backgroundColor: '#ddd',
-    padding: 10,
-    margin: 5,
-    borderRadius: 5,
+  sliderValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 10,
   },
-  multiplierButton: {
-    backgroundColor: '#ddd',
-    padding: 10,
-    margin: 5,
-    borderRadius: 5,
-  },
-  selectedButton: {
-    backgroundColor: '#00f',
-  },
-  buttonText: {
-    color: '#fff',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    width: '80%',
-    marginBottom: 20,
-    borderRadius: 5,
+  animatedButton: {
+    marginTop: 20,
+    overflow: 'hidden',
   },
   placeBetButton: {
     backgroundColor: '#28a745',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 10,
+    width: 200,
+    alignItems: 'center',
   },
   placeBetButtonText: {
     color: '#fff',

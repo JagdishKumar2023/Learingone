@@ -98,7 +98,7 @@ function MyTabs() {
     try {
       const firstTime = await AsyncStorage.getItem('isFirstTime');
       console.log('isFirstTime value:', firstTime);
-      setIsFirstTime(true); // Show onboard if 'isFirstTime' is null firstTime !== 'false'
+      setIsFirstTime(firstTime !== 'false'); // Show onboard if 'isFirstTime' is null
     } catch (error) {
       console.error('Error reading AsyncStorage:', error);
     }

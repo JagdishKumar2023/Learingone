@@ -1,12 +1,20 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withRepeat,
+  Easing,
+} from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function Timer({onFiveSecondsRemaining}) {
-  const [selectedTime, setSelectedTime] = useState(30); // Default 30 sec
+export default function Timer() {
+  const [selectedTime, setSelectedTime] = useState(30);
   const [time, setTime] = useState({minutes: 0, seconds: 30});
   const [isRunning, setIsRunning] = useState(false);
-  const [showBlink, setShowBlink] = useState(false);
+  const scaleAnim = useSharedValue(1);
+  const blinkAnim = useSharedValue(1);
 
   const timeOptions = [
     {label: '30 sec', value: 30, warningThreshold: 15, icon: 'clock-fast'},
@@ -26,19 +34,12 @@ export default function Timer({onFiveSecondsRemaining}) {
             setIsRunning(false);
             return {minutes: 0, seconds: 0};
           }
-
-          if (seconds === 0) {
-            minutes--;
-            seconds = 59;
-          } else {
-            seconds--;
-          }
-
-          return {minutes, seconds};
+          return seconds === 0
+            ? {minutes: minutes - 1, seconds: 59}
+            : {minutes, seconds: seconds - 1};
         });
       }, 1000);
     }
-
     return () => clearInterval(timer);
   }, [isRunning]);
 
@@ -51,24 +52,30 @@ export default function Timer({onFiveSecondsRemaining}) {
       ? selectedOption.warningThreshold
       : 0;
 
-    let blinkInterval;
-
     if (totalSeconds <= warningThreshold && totalSeconds > 5) {
-      blinkInterval = setInterval(() => setShowBlink(prev => !prev), 300);
+      scaleAnim.value = withRepeat(
+        withTiming(1.2, {duration: 500, easing: Easing.linear}),
+        -1,
+        true,
+      );
+      blinkAnim.value = withRepeat(withTiming(0, {duration: 500}), -1, true);
     } else {
-      setShowBlink(false); // Remove "Order Fast" in last 5 seconds or when timer ends
+      scaleAnim.value = withTiming(1);
+      blinkAnim.value = withTiming(1);
     }
-
-    return () => clearInterval(blinkInterval);
   }, [time, selectedTime]);
 
   const formatNumber = num => String(num).padStart(2, '0');
-
   const handleTimeSelection = value => {
     setSelectedTime(value);
     setTime({minutes: Math.floor(value / 60), seconds: value % 60});
-    setIsRunning(true); // Start timer immediately
+    setIsRunning(true);
   };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{scale: scaleAnim.value}],
+  }));
+  const blinkStyle = useAnimatedStyle(() => ({opacity: blinkAnim.value}));
 
   const totalSeconds = time.minutes * 60 + time.seconds;
   const selectedOption = timeOptions.find(
@@ -82,7 +89,7 @@ export default function Timer({onFiveSecondsRemaining}) {
         styles.container,
         totalSeconds <= warningThreshold && styles.warningBackground,
       ]}>
-      <Text style={styles.label}>Set Timer:</Text>
+      <Text style={styles.label}>Set Timer</Text>
       <FlatList
         data={timeOptions}
         horizontal
@@ -110,9 +117,9 @@ export default function Timer({onFiveSecondsRemaining}) {
       <View style={styles.timerDisplay}>
         <Text style={styles.pnText}>PN: 1234567890FGH4789</Text>
         <View style={styles.timeRemainingContainer}>
-          <Text style={styles.timeRemainingText}>Time Remaining:</Text>
+          <Text style={styles.timeRemainingText}>Time Remaining</Text>
           <View style={styles.timerContainer}>
-            <View style={styles.timerBox}>
+            <Animated.View style={[styles.timerBox, animatedStyle]}>
               <Text
                 style={[
                   styles.timerText,
@@ -120,9 +127,9 @@ export default function Timer({onFiveSecondsRemaining}) {
                 ]}>
                 {formatNumber(time.minutes)}
               </Text>
-            </View>
+            </Animated.View>
             <Text style={styles.separator}>:</Text>
-            <View style={styles.timerBox}>
+            <Animated.View style={[styles.timerBox, animatedStyle]}>
               <Text
                 style={[
                   styles.timerText,
@@ -130,11 +137,16 @@ export default function Timer({onFiveSecondsRemaining}) {
                 ]}>
                 {formatNumber(time.seconds)}
               </Text>
-            </View>
+            </Animated.View>
           </View>
         </View>
       </View>
-      {showBlink && <Text style={styles.blinkText}>ORDER FAST ✨</Text>}
+      {totalSeconds <= warningThreshold && totalSeconds > 5 && (
+        <Animated.View style={[styles.blinkContainer, blinkStyle]}>
+          <Icon name="alert" size={24} color="yellow" />
+          <Text style={styles.blinkText}>ORDER FAST ✨</Text>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -147,91 +159,48 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#441752',
   },
-  warningBackground: {
-    backgroundColor: 'red',
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: 'bold', // Make label bold
-    color: 'white',
-    marginBottom: 5,
-  },
-  timeSelector: {
-    flexDirection: 'row',
-    paddingVertical: 10,
-  },
+  warningBackground: {backgroundColor: '#ff4500'},
+  label: {fontSize: 18, fontWeight: 'bold', color: 'white', marginBottom: 5},
+  timeSelector: {flexDirection: 'row', paddingVertical: 10},
   timeOption: {
     backgroundColor: '#444',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginHorizontal: 5,
+    padding: 10,
+    margin: 10,
     borderRadius: 10,
   },
-  selectedOption: {
-    backgroundColor: '#f39c12',
-  },
-  icon: {
-    // marginRight: 2,
-  },
-  optionText: {
-    fontSize: 14,
-    fontWeight: 'bold', // Bold text
-    color: 'white',
-  },
+  selectedOption: {backgroundColor: '#f39c12'},
+  optionText: {fontSize: 12, fontWeight: 'bold', color: 'white'},
   timerDisplay: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
-  pnText: {
-    color: 'white',
-    fontWeight: 'bold', // Make PN text bold
-  },
-  timeRemainingContainer: {
-    flexDirection: 'column',
-    gap: 8,
-  },
-  timeRemainingText: {
-    color: 'white',
-    fontWeight: 'bold', // Make "Time Remaining" bold
-    textAlign: 'center',
-  },
+  pnText: {color: 'white', fontWeight: 'bold'},
+  timeRemainingContainer: {gap: 8},
+  timeRemainingText: {color: 'white', fontWeight: 'bold', textAlign: 'center'},
   timerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    alignSelf: 'flex-end',
   },
   timerBox: {
     width: 60,
-    height: 70,
+    height: 60,
     backgroundColor: '#333',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 5,
-    marginHorizontal: 5,
   },
-  timerText: {
-    fontSize: 32,
-    fontWeight: 'bold', // Make numbers bold
-    color: 'white',
-  },
-  separator: {
-    fontSize: 32,
-    fontWeight: 'bold', // Bold separator
-    color: '#fff',
-  },
-  warningText: {
-    color: 'yellow', // Yellow warning text
-  },
-  blinkText: {
-    fontSize: 24, // Larger text
-    fontWeight: 'bold', // Bold blinking text
-    color: 'yellow',
+  timerText: {fontSize: 32, fontWeight: 'bold', color: 'white'},
+  warningText: {color: 'yellow'},
+  blinkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     position: 'absolute',
     right: 20,
     top: 20,
   },
+  blinkText: {fontSize: 24, fontWeight: 'bold', color: 'yellow', marginLeft: 5},
 });

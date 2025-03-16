@@ -37,7 +37,7 @@ const Header = ({balance = '0.00'}) => {
 
 const styles = StyleSheet.create({
   header: {
-    height: 110,
+    height: 130,
     backgroundColor: '#1c1c1c',
     flexDirection: 'row',
     justifyContent: 'space-between',

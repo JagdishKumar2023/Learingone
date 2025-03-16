@@ -1,45 +1,30 @@
 import React from 'react';
 import {TouchableOpacity, Text, StyleSheet} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
-const CommonButton = ({
-  title,
-  onPress,
-  backgroundColor = '#f39c12',
-  textColor = '#fff',
-  width = '100%',
-  height = 50,
-  borderRadius = 8,
-  disabled = false,
-}) => {
+const CommonButton = ({title, onPress, width = '100%'}) => {
   return (
-    <TouchableOpacity
-      style={[
-        styles.button,
-        {
-          backgroundColor,
-          width,
-          height,
-          borderRadius,
-          opacity: disabled ? 0.5 : 1,
-        },
-      ]}
-      onPress={!disabled ? onPress : null}
-      activeOpacity={0.7}>
-      <Text style={[styles.buttonText, {color: textColor}]}>{title}</Text>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={{width}}>
+      <LinearGradient
+        colors={['#FF9800', '#F57C00']} // Orange gradient
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
+        style={styles.button}>
+        <Text style={styles.buttonText}>{title}</Text>
+      </LinearGradient>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    // flex: 1,
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   buttonText: {
-    fontSize: 18,
+    color: 'white',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

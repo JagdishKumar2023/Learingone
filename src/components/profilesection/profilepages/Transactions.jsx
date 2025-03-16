@@ -81,15 +81,19 @@ const Transactions = () => {
   const filteredTransactions = transactions.filter(item => {
     const itemDate = new Date(item.date);
     const inDateRange = itemDate >= startDate && itemDate <= endDate;
-    if (filter === 'All') return inDateRange;
-    if (filter === 'Withdrawal Complete')
+    if (filter === 'All') {
+      return inDateRange;
+    }
+    if (filter === 'Withdrawal Complete') {
       return (
         item.type === 'Withdrawal' && item.status === 'Complete' && inDateRange
       );
-    if (filter === 'Withdrawal Rejected')
+    }
+    if (filter === 'Withdrawal Rejected') {
       return (
         item.type === 'Withdrawal' && item.status === 'Rejected' && inDateRange
       );
+    }
     return item.status === filter && inDateRange;
   });
 

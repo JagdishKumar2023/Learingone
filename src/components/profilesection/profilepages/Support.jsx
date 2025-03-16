@@ -32,15 +32,24 @@ const Support = () => {
 
   const handleUploadScreenshot = () => {
     launchImageLibrary(
-      {mediaType: 'photo', maxWidth: 800, maxHeight: 800},
+      {mediaType: 'photo', maxWidth: 800, maxHeight: 800, quality: 0.5}, // Adjust quality to reduce size
       response => {
         if (response.didCancel) {
           console.log('User cancelled image picker');
         } else if (response.errorCode) {
           console.log('ImagePicker Error: ', response.errorMessage);
         } else if (response.assets && response.assets.length > 0) {
-          const uri = response.assets[0].uri;
-          setScreenshot(uri);
+          const asset = response.assets[0];
+
+          if (asset.fileSize > 30 * 1024) {
+            // 30KB limit
+            setModalMessage('Image size must be less than 30KB.');
+            setIsError(true);
+            setModalVisible(true);
+            return;
+          }
+
+          setScreenshot(asset.uri);
         }
       },
     );

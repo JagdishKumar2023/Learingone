@@ -1,9 +1,16 @@
 import React, {useState} from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 
 const ImageUpload = () => {
-  const [imageUri, setImageUri] = useState(null); // To store the selected image URI
+  const [imageUri, setImageUri] = useState(null);
 
   const selectImage = () => {
     launchImageLibrary({mediaType: 'photo', quality: 0.5}, response => {
@@ -12,7 +19,18 @@ const ImageUpload = () => {
       } else if (response.errorCode) {
         console.log('ImagePicker Error: ', response.errorMessage);
       } else {
-        setImageUri(response.assets[0].uri); // Store the URI of the selected image
+        const selectedImage = response.assets[0];
+
+        if (selectedImage.fileSize > 30720) {
+          // 30KB limit
+          Alert.alert(
+            'File Size Exceeded',
+            'Please select an image smaller than 30KB.',
+          );
+          return;
+        }
+
+        setImageUri(selectedImage.uri);
       }
     });
   };
@@ -23,7 +41,7 @@ const ImageUpload = () => {
         {imageUri ? (
           <Image source={{uri: imageUri}} style={styles.profileImage} />
         ) : (
-          <Text style={styles.placeholderText}>Select an image</Text> // A more descriptive text
+          <Text style={styles.placeholderText}>Select an image</Text>
         )}
       </TouchableOpacity>
     </View>
@@ -34,15 +52,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center', // Ensures the content is vertically centered
+    justifyContent: 'center',
     padding: 15,
     marginTop: 60,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20, // Adds space below the title
-    color: 'cyan',
   },
   imageContainer: {
     borderWidth: 2,
@@ -53,12 +65,12 @@ const styles = StyleSheet.create({
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5', // Light background for the image container
+    backgroundColor: '#f5f5f5',
   },
   profileImage: {
     width: 130,
     height: 130,
-    borderRadius: 10, // Circular image
+    borderRadius: 10,
   },
   placeholderText: {
     color: '#aaa',

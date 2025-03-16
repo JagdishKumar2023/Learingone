@@ -38,13 +38,13 @@ const BigSmallMini = ({setIsModalVisible}) => {
             <CircularProgress
               value={100}
               radius={55}
-              progressValueColor={'#ecf0f1'}
               activeStrokeColor={item.activeStrokeColor}
               inActiveStrokeColor={'#9b59b6'}
               inActiveStrokeOpacity={0.5}
               inActiveStrokeWidth={20}
               activeStrokeWidth={15}
               duration={20000}
+              showProgressValue={false} // Removed percentage display
             />
           </TouchableOpacity>
         ))}
