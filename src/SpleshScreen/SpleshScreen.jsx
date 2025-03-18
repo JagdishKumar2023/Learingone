@@ -74,7 +74,7 @@ const SpleshScreen = ({navigation}) => {
           styles.textContainer,
           {opacity: fadeAnim, transform: [{translateY: slideAnim3}]},
         ]}>
-        <Text style={styles.secondary}>Welcome to Infinity Prime.</Text>
+        <Text style={styles.secondary}>India's First Prime Rings Trading.</Text>
       </Animated.View>
     </View>
   );
@@ -96,13 +96,13 @@ const styles = StyleSheet.create({
   highlight: {
     color: '#F7931A',
     fontFamily: 'Verdana',
-    fontSize: 26, // Smallest
+    fontSize: 32, // Smallest
     textAlign: 'center',
   },
   primary: {
     color: '#F7931A',
     fontFamily: 'Georgia',
-    fontSize: 28, // Medium
+    fontSize: 31, // Medium
     textAlign: 'center',
   },
   secondary: {

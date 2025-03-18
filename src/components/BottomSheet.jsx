@@ -5,11 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet';
 import Slider from '@react-native-community/slider';
-import Animated, {useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 
 const BetModal = ({onClose, modalColor = '#fff'}) => {
   const bottomSheetRef = useRef(null);
@@ -17,6 +22,7 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
   const [quantity, setQuantity] = useState(1);
   const [customAmount, setCustomAmount] = useState('');
   const buttonTranslateX = useSharedValue(0);
+  const progress = useSharedValue(0);
 
   const handleSheetChanges = useCallback(
     index => {
@@ -28,8 +34,28 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
   );
 
   const placeBet = () => {
-    console.log(`Placing bet: Amount: ${betAmount}, Quantity: ${quantity}`);
-    bottomSheetRef.current.close();
+    const finalAmount = customAmount
+      ? parseInt(customAmount, 10)
+      : betAmount * quantity;
+    console.log(`Placing bet: Amount: ₹${finalAmount}, Quantity: ${quantity}`);
+
+    progress.value = withTiming(1, {duration: 700});
+    buttonTranslateX.value = withSpring(50);
+
+    setTimeout(() => {
+      // Simulate API response
+      const isSuccessful = Math.random() > 0.3;
+
+      if (isSuccessful) {
+        Alert.alert('Success', `Your bet of ₹${finalAmount} was placed!`);
+        bottomSheetRef.current.close();
+      } else {
+        Alert.alert('Failed', 'Bet placement was rejected. Try again.');
+      }
+
+      buttonTranslateX.value = withSpring(0);
+      progress.value = withTiming(0, {duration: 500});
+    }, 1200);
   };
 
   return (
@@ -44,7 +70,16 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
           style={[styles.contentContainer, {backgroundColor: modalColor}]}>
           <Text style={styles.title}>Advanced Bet Placement</Text>
 
-          <Text style={styles.subtitle}>Select Amount:</Text>
+          <Text style={styles.subtitle}>Enter Custom Amount:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="₹ Enter Amount"
+            keyboardType="numeric"
+            value={customAmount}
+            onChangeText={setCustomAmount}
+          />
+
+          <Text style={styles.subtitle}>Or Select Amount:</Text>
           <Slider
             style={styles.slider}
             minimumValue={100}
@@ -55,7 +90,7 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
             minimumTrackTintColor="#00f"
             maximumTrackTintColor="#ccc"
           />
-          <Text style={styles.sliderValue}>₹{betAmount}</Text>
+          <Text style={styles.sliderValue}>₹{betAmount * quantity}</Text>
 
           <Text style={styles.subtitle}>Select Quantity:</Text>
           <Slider
@@ -78,13 +113,7 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
             <TouchableOpacity
               style={styles.placeBetButton}
               activeOpacity={0.7}
-              onPress={() => {
-                buttonTranslateX.value = withSpring(50);
-                setTimeout(() => {
-                  placeBet();
-                  buttonTranslateX.value = withSpring(0);
-                }, 500);
-              }}>
+              onPress={placeBet}>
               <Text style={styles.placeBetButtonText}>Slide to Place Bet</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -112,6 +141,15 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     marginVertical: 10,
+  },
+  input: {
+    width: '90%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingLeft: 10,
+    marginBottom: 10,
   },
   slider: {
     width: '90%',
