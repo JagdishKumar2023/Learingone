@@ -28,6 +28,7 @@ const PieChart = ({colors, number}) => {
   `;
 
   return (
+    // eslint-disable-next-line react-native/no-inline-styles
     <View style={{alignItems: 'center', margin: 8}}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <Defs>
