@@ -13,15 +13,27 @@ const progressData = [
 const BigSmallMini = ({setIsModalVisible}) => {
   const [selectedId, setSelectedId] = useState(null);
   const bottomSheetRef = useRef(null);
+  const [pausedStates, setPausedStates] = useState({
+    1: false,
+    2: false,
+    3: false,
+  });
 
   const handlePress = id => {
     setSelectedId(id);
+    setIsModalVisible(true);
+
+    // Pause only the selected circle
+    setPausedStates(prev => ({...prev, [id]: true}));
+
     bottomSheetRef.current?.expand();
   };
 
   const handleSheetChanges = useCallback(index => {
     if (index === -1) {
       setSelectedId(null);
+
+      setPausedStates({1: false, 2: false, 3: false});
     }
   }, []);
 
@@ -29,13 +41,9 @@ const BigSmallMini = ({setIsModalVisible}) => {
     <GestureHandlerRootView style={{flex: 1}}>
       <View style={styles.container}>
         {progressData.map(item => (
-          <TouchableOpacity
-            key={item.id}
-            onPress={() => {
-              handlePress(item.id);
-              setIsModalVisible(true);
-            }}>
+          <TouchableOpacity key={item.id} onPress={() => handlePress(item.id)}>
             <CircularProgress
+              key={item.id} // Ensure animation updates
               value={100}
               radius={55}
               activeStrokeColor={item.activeStrokeColor}
@@ -43,8 +51,9 @@ const BigSmallMini = ({setIsModalVisible}) => {
               inActiveStrokeOpacity={0.5}
               inActiveStrokeWidth={20}
               activeStrokeWidth={15}
-              duration={20000}
-              showProgressValue={false} // Removed percentage display
+              duration={100000}
+              showProgressValue={false}
+              pause={pausedStates[item.id]} // Pause only the selected circle
             />
           </TouchableOpacity>
         ))}

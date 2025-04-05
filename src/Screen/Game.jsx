@@ -13,45 +13,125 @@ import CommonButton from '../components/common/button/CommonButton';
 import Rings from '../components/Rings/Rings';
 import Number from '../components/Number/Number';
 import Modal from '../components/BottomSheet';
+import {useGame} from './../gamelogic/context/GameContext';
+import {
+  useAddColorDetails,
+  useGetBetDetailsById,
+  useGetColorDetails,
+  useGetLiveWinningDetails,
+  useGetNumberDetails,
+  useGetSizeDetails,
+} from '../apiforgame/useBackendApi';
 
-const ringsData = [
-  {
+// const ringsData = [
+//   {
+//     stroke1: ['green', 'blue', '#DE3163'],
+//     stroke2: ['#DE3163', 'aqua', 'aqua'],
+//     stroke3: ['#DE3163', 'green', '#DE3163'],
+//   },
+//   {
+//     stroke1: ['#69247C', 'blue', '#850F8D'],
+//     stroke2: ['red', 'aqua', 'aqua'],
+//     stroke3: ['#69247C', 'blue', '#850F8D'],
+//   },
+//   {
+//     stroke1: ['red', 'blue', '#06D001'],
+//     stroke2: ['red', 'aqua', 'aqua'],
+//     stroke3: ['red', 'violet', '#06D001'],
+//   },
+// ];
+
+const ringsColors = {
+  red: {
     stroke1: ['green', 'blue', '#DE3163'],
     stroke2: ['#DE3163', 'aqua', 'aqua'],
     stroke3: ['#DE3163', 'green', '#DE3163'],
   },
-  {
+  violet: {
     stroke1: ['#69247C', 'blue', '#850F8D'],
     stroke2: ['red', 'aqua', 'aqua'],
     stroke3: ['#69247C', 'blue', '#850F8D'],
   },
-  {
+  green: {
     stroke1: ['red', 'blue', '#06D001'],
     stroke2: ['red', 'aqua', 'aqua'],
     stroke3: ['red', 'violet', '#06D001'],
   },
-];
+};
 
 const Game = () => {
+  const {data: res, isError} = useGetColorDetails();
+
+  const {state, dispatch} = useGame();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [modalColor, setModalColor] = useState('white');
-  const [selectedColors, setSelectedColors] = useState(ringsData[0].stroke3);
+  const [selectedColors, setSelectedColors] = useState('');
+  const [sortedData, setSortedData] = useState([]);
+  const [selectedRing, setSelectedRing] = useState({});
 
   const handleTimerEnd = () => {
     setShowOverlay(false);
+    dispatch({
+      type: 'GENERATE_RESULT',
+      payload: Math.random() < 0.5 ? 'red' : 'green',
+    });
+    dispatch({
+      type: 'DISTRIBUTE_WINNINGS',
+      payload: {result: state.results[0], multiplier: 1.8},
+    });
   };
 
   const handleFiveSecondsRemaining = () => {
     setShowOverlay(true);
   };
 
-  const handlePress = ringsColors => {
-    const lastColor = ringsColors.stroke3[ringsColors.stroke3.length - 1];
+  const handlePress = currentRingData => {
+    const currentRingColor = ringsColors[currentRingData.colorName];
+    const lastColor =
+      currentRingColor.stroke3[currentRingColor.stroke3.length - 1];
+    console.log('lastColor:', lastColor);
     setModalColor(lastColor);
-    setSelectedColors(ringsColors.stroke3); // Pass stroke3 colors to numbers
+    setSelectedColors(currentRingColor.stroke3);
     setIsModalVisible(true);
+    setSelectedColors(currentRingData);
   };
+
+  // const {data: number, error: isNumberError} = useGetNumberDetails();
+
+  // const {data: size, error: isSizeError} = useGetSizeDetails();
+
+  // const {data: winner, error: isWinner} = useGetLiveWinningDetails();
+
+  // const {data: betDetails, error: isBetDetails} = useGetBetDetailsById();
+
+  // const {data: addColor, error: isAddColor} = useAddColorDetails();
+
+  // console.log('addColor', addColor); // addColor is problem
+
+  // const {data: winnerLive, error: isWinnerLive} = useGetLiveWinningDetails();
+
+  // console.log('winnerLive', winnerLive);
+
+  // console.log(winner, 'winner');
+
+  useEffect(() => {
+    if (res?.data.length) {
+      let tempData = res.data;
+
+      [tempData[0], tempData[1], tempData[2]] = [
+        tempData[0],
+        tempData[2],
+        tempData[1],
+      ];
+
+      setSortedData(tempData);
+    }
+  }, [res]);
+
+  console.log('colorDetails', res);
+  // console.log('Numbers', number);
+  // console.log('size', size);
 
   return (
     <>
@@ -61,14 +141,19 @@ const Game = () => {
           {showOverlay && <TimerOverlay onTimerEnd={handleTimerEnd} />}
           <View style={styles.gameSection}>
             <View style={{flexDirection: 'row'}}>
-              {ringsData.map((ringsColors, index) => (
-                <TouchableOpacity
-                  onPress={() => handlePress(ringsColors)}
-                  activeOpacity={0.5}
-                  key={index}>
-                  <Rings key={index} ringsColors={ringsColors} />
-                </TouchableOpacity>
-              ))}
+              {sortedData.map((ringsData, index) => {
+                return (
+                  <TouchableOpacity
+                    onPress={() => handlePress(ringsData)}
+                    activeOpacity={0.5}
+                    key={index}>
+                    <Rings
+                      key={index}
+                      ringsColors={ringsColors[ringsData.colorName]}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             <Number
               isModalVisible={isModalVisible}
@@ -82,7 +167,11 @@ const Game = () => {
           </View>
         </View>
         <View style={styles.buttonRow}>
-          <CommonButton title={'Game History'} width="40%" />
+          <CommonButton
+            title={'Game History'}
+            width="40%"
+            onPress={() => console.log(state.history)}
+          />
           <CommonButton title={'My Orders'} width="40%" />
         </View>
         <View style={{flex: 1}}>
@@ -94,6 +183,7 @@ const Game = () => {
           onClose={() => setIsModalVisible(false)}
           modalColor={modalColor}
           colors={selectedColors}
+          selectedRing={selectedRing}
         />
       )}
     </>
@@ -149,15 +239,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
   },
-  showModalButton: {
-    backgroundColor: 'cyan',
-    padding: 10,
-    margin: 20,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  showModalButtonText: {
-    color: 'black',
+  walletText: {
+    color: 'white',
+    fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 10,
   },
 });

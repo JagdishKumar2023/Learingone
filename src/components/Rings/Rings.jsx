@@ -34,7 +34,6 @@ const Rings = ({ringsColors}) => {
     strokeOffset3.value = withTiming(0, {duration: duration3});
   }, []);
 
-  // Percentage calculation for each circle
   const percentage1 = useDerivedValue(
     () => ((circumference1 - strokeOffset1.value) / circumference1) * 100,
   );

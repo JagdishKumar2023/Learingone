@@ -4,24 +4,35 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Alert,
+  Dimensions,
+  View,
+  ToastAndroid,
+  Platform,
+  Vibration,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet';
-import Slider from '@react-native-community/slider';
 import Animated, {
   useSharedValue,
-  withSpring,
   withTiming,
+  Easing,
 } from 'react-native-reanimated';
+import {useGame} from '../gamelogic/context/GameContext';
 
-const BetModal = ({onClose, modalColor = '#fff'}) => {
+const {width, height} = Dimensions.get('window');
+const PRESET_AMOUNTS = [200, 500, 1000, 5000, 10000];
+
+const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
   const bottomSheetRef = useRef(null);
   const [betAmount, setBetAmount] = useState(200);
-  const [quantity, setQuantity] = useState(1);
   const [customAmount, setCustomAmount] = useState('');
-  const buttonTranslateX = useSharedValue(0);
   const progress = useSharedValue(0);
+  const progressWidth = useSharedValue(0);
+  const {dispatch, currentState} = useGame();
+  const {mutate, isLoading, isError, isSuccess} =
+    useAddBetDataDetails(dispatch);
+
+  const {isProcessing, isSuccessful} = currentState;
 
   const handleSheetChanges = useCallback(
     index => {
@@ -32,28 +43,65 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
     [onClose],
   );
 
-  const placeBet = () => {
-    const finalAmount = customAmount
-      ? parseInt(customAmount, 10)
-      : betAmount * quantity;
-    console.log(`Placing bet: Amount: ₹${finalAmount}, Quantity: ${quantity}`);
+  const showToast = (message, success) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.showWithGravityAndOffset(
+        message,
+        ToastAndroid.LONG,
+        ToastAndroid.CENTER,
+        0,
+        50,
+      );
+    }
+  };
 
-    progress.value = withTiming(1, {duration: 700});
-    buttonTranslateX.value = withSpring(50);
+  const placeBet = () => {
+    if (isLoading) return;
+
+    const finalAmount = customAmount ? parseInt(customAmount, 10) : betAmount;
+
+    if (isNaN(finalAmount) || finalAmount <= 0) {
+      showToast('❌ Please enter a valid amount!', false);
+      return;
+    }
+
+    console.log(`Placing bet: Amount: ₹${finalAmount}`);
+    progress.value = withTiming(1, {
+      duration: 1000,
+      easing: Easing.inOut(Easing.ease),
+    });
+    progressWidth.value = withTiming(width * 0.8, {
+      duration: 1000,
+      easing: Easing.linear,
+    });
+
+    // mutate(finalAmount); // Pass entire betData instead of only finalAmount
+    dispatch({
+      type: 'PLACE_BET',
+      payload: {amount: finalAmount},
+    });
 
     setTimeout(() => {
-      // Simulate API response
       const isSuccessful = Math.random() > 0.3;
+      showToast(
+        isSuccessful
+          ? `✅ Order ₹${finalAmount} placed successfully`
+          : `❌ Order ₹${finalAmount} failed`,
+        isSuccessful,
+      );
+
+      progress.value = withTiming(0, {
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+      });
+      progressWidth.value = withTiming(0, {
+        duration: 500,
+        easing: Easing.linear,
+      });
 
       if (isSuccessful) {
-        Alert.alert('Success', `Your bet of ₹${finalAmount} was placed!`);
-        bottomSheetRef.current.close();
-      } else {
-        Alert.alert('Failed', 'Bet placement was rejected. Try again.');
+        bottomSheetRef.current?.close();
       }
-
-      buttonTranslateX.value = withSpring(0);
-      progress.value = withTiming(0, {duration: 500});
     }, 1200);
   };
 
@@ -62,60 +110,53 @@ const BetModal = ({onClose, modalColor = '#fff'}) => {
       <BottomSheet
         ref={bottomSheetRef}
         index={0}
-        snapPoints={['60%']}
+        snapPoints={[height * 0.6]}
         onChange={handleSheetChanges}
         enablePanDownToClose>
         <BottomSheetView
           style={[styles.contentContainer, {backgroundColor: modalColor}]}>
-          <Text style={styles.title}>Advanced Bet Placement</Text>
-
+          <Text style={styles.title}>Invest Now</Text>
           <Text style={styles.subtitle}>Enter Custom Amount:</Text>
           <TextInput
             style={styles.input}
             placeholder="₹ Enter Amount"
             keyboardType="numeric"
             value={customAmount}
-            onChangeText={setCustomAmount}
+            onChangeText={text => {
+              setCustomAmount(text);
+              if (text) setBetAmount(null);
+            }}
           />
-
-          <Text style={styles.subtitle}>Or Select Amount:</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={100}
-            maximumValue={5000}
-            step={100}
-            value={betAmount}
-            onValueChange={setBetAmount}
-            minimumTrackTintColor="#00f"
-            maximumTrackTintColor="#ccc"
-          />
-          <Text style={styles.sliderValue}>₹{betAmount * quantity}</Text>
-
-          <Text style={styles.subtitle}>Select Quantity:</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={1}
-            maximumValue={20}
-            step={1}
-            value={quantity}
-            onValueChange={setQuantity}
-            minimumTrackTintColor="#f39c12"
-            maximumTrackTintColor="#ccc"
-          />
-          <Text style={styles.sliderValue}>x{quantity}</Text>
-
-          <Animated.View
-            style={[
-              styles.animatedButton,
-              {transform: [{translateX: buttonTranslateX}]},
-            ]}>
-            <TouchableOpacity
-              style={styles.placeBetButton}
-              activeOpacity={0.7}
-              onPress={placeBet}>
-              <Text style={styles.placeBetButtonText}>Slide to Place Bet</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <Text style={styles.subtitle}>Select Amount:</Text>
+          <View style={styles.presetContainer}>
+            {PRESET_AMOUNTS.map(amount => (
+              <TouchableOpacity
+                key={amount}
+                style={[
+                  styles.presetButton,
+                  betAmount === amount && styles.presetButtonSelected,
+                ]}
+                onPress={() => {
+                  setBetAmount(amount);
+                  setCustomAmount('');
+                }}
+                disabled={customAmount !== ''}>
+                <Text style={styles.presetButtonText}>₹{amount}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.progressBarContainer}>
+            <Animated.View
+              style={[styles.progressBar, {width: progressWidth}]}
+            />
+          </View>
+          <TouchableOpacity
+            style={[styles.placeBetButton, isProcessing && {opacity: 0.5}]}
+            activeOpacity={0.7}
+            onPress={placeBet}
+            disabled={isProcessing}>
+            <Text style={styles.placeBetButtonText}>Place Bet</Text>
+          </TouchableOpacity>
         </BottomSheetView>
       </BottomSheet>
     </GestureHandlerRootView>
@@ -129,51 +170,73 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    padding: 20,
+    padding: width * 0.05,
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   title: {
-    fontSize: 24,
+    fontSize: width * 0.065,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: height * 0.02,
   },
   subtitle: {
-    fontSize: 18,
-    marginVertical: 10,
+    fontSize: width * 0.048,
+    marginVertical: height * 0.015,
   },
   input: {
     width: '90%',
-    height: 40,
+    height: height * 0.06,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    paddingLeft: 10,
-    marginBottom: 10,
+    paddingLeft: 12,
+    fontSize: 18,
+    marginBottom: height * 0.015,
   },
-  slider: {
-    width: '90%',
-    height: 40,
+  presetContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginBottom: height * 0.02,
   },
-  sliderValue: {
+  presetButton: {
+    backgroundColor: '#ddd',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    margin: 5,
+  },
+  presetButtonSelected: {
+    backgroundColor: '#007bff',
+  },
+  presetButtonText: {
+    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 10,
   },
-  animatedButton: {
-    marginTop: 20,
+  progressBarContainer: {
+    width: width * 0.8,
+    height: 10,
+    backgroundColor: '#ddd',
+    borderRadius: 5,
     overflow: 'hidden',
+    marginTop: 10,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#007bff',
   },
   placeBetButton: {
     backgroundColor: '#28a745',
-    padding: 15,
+    padding: height * 0.02,
     borderRadius: 10,
-    width: 200,
+    width: width * 0.5,
     alignItems: 'center',
+    marginTop: 10,
   },
   placeBetButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: width * 0.05,
     fontWeight: 'bold',
   },
 });

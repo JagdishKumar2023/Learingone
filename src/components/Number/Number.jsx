@@ -1,6 +1,10 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View, Dimensions, FlatList} from 'react-native';
 import Svg, {Path, Defs, LinearGradient, Stop} from 'react-native-svg';
+
+const {width} = Dimensions.get('window');
+const size = width * 0.15;
+const radius = size / 1;
 
 const numbers = [
   {value: 1, colors: ['purple', '#DE3163']},
@@ -16,10 +20,7 @@ const numbers = [
 ];
 
 const PieChart = ({colors, number}) => {
-  const size = 76;
-  const radius = size / 2;
-
-  const fullCirclePath = `
+  const fullSqurePath = `
     M ${radius},${radius}
     m -${radius}, 0
     a ${radius},${radius} 0 1,0 ${size},0
@@ -28,8 +29,7 @@ const PieChart = ({colors, number}) => {
   `;
 
   return (
-    // eslint-disable-next-line react-native/no-inline-styles
-    <View style={{alignItems: 'center', margin: 8}}>
+    <View style={{margin: width * 0.02}}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <Defs>
           <LinearGradient
@@ -47,8 +47,7 @@ const PieChart = ({colors, number}) => {
             ))}
           </LinearGradient>
         </Defs>
-        {/* Full circle with gradient */}
-        <Path d={fullCirclePath} fill={`url(#gradient-${number})`} />
+        <Path d={fullSqurePath} fill={`url(#gradient-${number})`} />
       </Svg>
     </View>
   );
@@ -57,27 +56,17 @@ const PieChart = ({colors, number}) => {
 const Number = ({setIsModalVisible}) => {
   return (
     <View style={{alignItems: 'center'}}>
-      <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-        {numbers.slice(0, 5).map(({value, colors}, index) => (
-          <TouchableOpacity onPress={() => setIsModalVisible(true)} key={index}>
-            <PieChart colors={colors} number={value} />
+      <FlatList
+        data={numbers}
+        numColumns={5}
+        keyExtractor={item => item.value.toString()}
+        contentContainerStyle={{alignItems: 'center'}}
+        renderItem={({item}) => (
+          <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+            <PieChart colors={item.colors} number={item.value} />
           </TouchableOpacity>
-        ))}
-      </View>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          marginTop: 10,
-        }}>
-        {numbers.slice(5, 10).map(({value, colors}, index) => (
-          <TouchableOpacity
-            onPress={() => setIsModalVisible(true)}
-            key={index + 5}>
-            <PieChart colors={colors} number={value} />
-          </TouchableOpacity>
-        ))}
-      </View>
+        )}
+      />
     </View>
   );
 };

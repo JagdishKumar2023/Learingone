@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useRef, useEffect, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -29,6 +29,14 @@ const cryptoIcons = [
 
 const Crypto = () => {
   const flatListRef = useRef(null);
+  const [winnerVisible, setWinnerVisible] = useState(false);
+  const [gameResult, setGameResult] = useState('RED');
+  const [winningAmount, setWinningAmount] = useState(1000);
+
+  useEffect(() => {
+    // Show WinnerBottomSheet when screen loads
+    setWinnerVisible(true);
+  }, []);
 
   useEffect(() => {
     let scrollValue = 0;
@@ -51,32 +59,34 @@ const Crypto = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <CryptoHeader />
+    <>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <CryptoHeader />
 
-      {/* Auto-scrolling Crypto Icons */}
-      <FlatList
-        ref={flatListRef}
-        data={cryptoIcons.concat(cryptoIcons)} // Duplicate for infinite effect
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.iconRow}
-        renderItem={({item}) => (
-          <View style={styles.iconContainer}>
-            <Icon name={item.icon} size={50} color={item.color} />
-            <Text style={styles.iconText}>{item.name}</Text>
-          </View>
-        )}
-        pagingEnabled={false}
-        scrollEnabled={false}
-      />
+        {/* Auto-scrolling Crypto Icons */}
+        <FlatList
+          ref={flatListRef}
+          data={cryptoIcons.concat(cryptoIcons)} // Duplicate for infinite effect
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.iconRow}
+          renderItem={({item}) => (
+            <View style={styles.iconContainer}>
+              <Icon name={item.icon} size={50} color={item.color} />
+              <Text style={styles.iconText}>{item.name}</Text>
+            </View>
+          )}
+          pagingEnabled={false}
+          scrollEnabled={false}
+        />
 
-      <SilderOfCrypto />
-      <CroptoSilder />
-      <CryptoInfo />
-      <Footer />
-    </ScrollView>
+        <SilderOfCrypto />
+        <CroptoSilder />
+        <CryptoInfo />
+        <Footer />
+      </ScrollView>
+    </>
   );
 };
 
