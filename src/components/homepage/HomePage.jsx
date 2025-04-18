@@ -66,7 +66,6 @@ const HomePage = () => {
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
-
   const textOpacity = textAnim.interpolate({
     inputRange: [0, 1, 2, 3],
     outputRange: [1, 0, 0, 0],
@@ -81,7 +80,9 @@ const HomePage = () => {
   });
 
   return (
-    <ScrollView style={styles.scrollContainer}>
+    <ScrollView
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.scrollContent}>
       <View style={styles.container}>
         <View style={styles.content}>
           <View style={styles.textContainer}>
@@ -125,87 +126,84 @@ export default HomePage;
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    backgroundColor: 'black',
+    flex: 1,
+    backgroundColor: '#ccc', // Gray background
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: height * 0.05,
   },
   container: {
     backgroundColor: '#1a1a1a',
-    paddingHorizontal: width * 0.05,
-    width: '100%',
-    minHeight: height * 0.1,
     borderColor: 'orange',
     borderWidth: 2,
     borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 50,
+    width: width * 0.9,
+    paddingVertical: height * 0.05,
+    paddingHorizontal: width * 0.05,
   },
   content: {
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '110%',
   },
   textContainer: {
     width: '100%',
-    paddingHorizontal: width * 0.05,
   },
   overlayText: {
-    height: 100,
+    height: height * 0.1,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    marginTop: 20,
+    marginTop: height * 0.02,
   },
   heading: {
     color: 'orange',
-    fontSize: width * 0.1,
+    fontSize: width * 0.07,
     fontWeight: 'bold',
     textAlign: 'center',
-    width: '100%',
-    marginBottom: 10,
+    marginBottom: height * 0.015,
   },
   subHeading: {
     color: 'cyan',
-    fontSize: width * 0.08,
+    fontSize: width * 0.06,
     fontWeight: '600',
     textAlign: 'center',
-    width: '100%',
-    marginBottom: 10,
+    marginBottom: height * 0.01,
   },
   attractiveLine: {
     color: 'gold',
-    fontSize: width * 0.07,
+    fontSize: width * 0.05,
     fontWeight: '500',
     textAlign: 'center',
-    width: '100%',
-    marginBottom: 15,
+    marginBottom: height * 0.02,
   },
   subText: {
     color: 'cyan',
-    fontSize: width * 0.06,
+    fontSize: width * 0.05,
     textAlign: 'center',
-    width: '100%',
   },
   signUpButton: {
     backgroundColor: 'orange',
     borderRadius: 25,
-    paddingVertical: height * 0.04,
-    paddingHorizontal: width * 0.2,
-    marginTop: height * 0.04,
-    width: '80%',
+    paddingVertical: height * 0.02,
+    paddingHorizontal: width * 0.1,
+    marginTop: height * 0.03,
     alignSelf: 'center',
   },
   signUpText: {
     color: 'white',
-    fontSize: width * 0.06,
+    fontSize: width * 0.05,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   svgContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
+    width: width * 0.5,
     height: width * 0.5,
-    marginTop: 20,
+    marginTop: height * 0.03,
+    backgroundColor: '#333', // Placeholder for actual SVG or content
+    borderRadius: width * 0.25,
   },
 });

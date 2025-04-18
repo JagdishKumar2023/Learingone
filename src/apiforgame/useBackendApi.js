@@ -1,5 +1,6 @@
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import api from './api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ✅ Winner Data (Paginated)
 export const useGetPaginatedWinnerData = (page = 1) =>
@@ -44,17 +45,32 @@ export const useGetSizeDetails = () =>
   });
 
 // ✅ Get Period Number by Seconds
-export const useGetPeriodNumber = periodTypeInSec =>
-  useQuery({
+// export const useGetPeriodNumber = periodTypeInSec =>
+//   useQuery({
+//     queryKey: ['periodNumber', periodTypeInSec],
+//     queryFn: async () => {
+//       const {data} = await api.get(
+//         `/prediction/getPeriodNumber/${periodTypeInSec}`,
+//       );
+//       return data;
+//     },
+//     enabled: !!periodTypeInSec, // ✅ Only runs when periodTypeInSec is available
+//   });
+
+export const useGetPeriodNumber = periodTypeInSec => {
+  return useQuery({
     queryKey: ['periodNumber', periodTypeInSec],
     queryFn: async () => {
+      if (!periodTypeInSec) throw new Error('periodTypeInSec is required');
       const {data} = await api.get(
         `/prediction/getPeriodNumber/${periodTypeInSec}`,
       );
       return data;
     },
-    enabled: !!periodTypeInSec, // ✅ Only runs when periodTypeInSec is available
+    enabled: false, // Manual fetching only
+    retry: false, // Optional: prevents automatic retries
   });
+};
 
 // ✅ Get Betting Details by ID --{Any problem}--
 export const useGetBetDetailsById = betId =>
@@ -152,6 +168,7 @@ export const useGetLiveWinningDetails = () =>
 
 /** 🚀 DELETE Routes */
 // ✅ Delete Bet by ID
+
 // export const useDeleteBet = () => {
 //   const queryClient = useQueryClient();
 //   return useMutation({
@@ -159,3 +176,72 @@ export const useGetLiveWinningDetails = () =>
 //     onSuccess: () => queryClient.invalidateQueries(['betDetails']),
 //   });
 // };
+
+// ✅ Register User
+export const useRegisterUser = () => {
+  return useMutation({
+    mutationFn: async userData => {
+      const {data} = await api.post('/users/register', userData);
+      return data;
+    },
+    onSuccess: data => {
+      console.log('Registration successful', data);
+      // Handle success (e.g., navigate to the home screen or login)
+    },
+    onError: error => {
+      console.error('Registration failed', error);
+      // Handle error (e.g., show a notification or message)
+    },
+  });
+};
+
+// ✅ Login User
+export const useLoginUser = () => {
+  return useMutation({
+    mutationFn: async loginData => {
+      const {data} = await api.post('/users/login', loginData);
+      return data;
+    },
+    onSuccess: async data => {
+      console.log('Login successful', data);
+
+      // Store the token in AsyncStorage
+      try {
+        console.log('LoginData:', data.data[0].token);
+        await AsyncStorage.setItem('authToken', data.data[0].token);
+        console.log('Token stored successfully');
+      } catch (error) {
+        console.error('Error storing token in AsyncStorage', error);
+      }
+
+      // Handle success (e.g., navigate to the home screen or dashboard)
+    },
+    onError: error => {
+      console.error('Login failed', error);
+      // Handle error (e.g., show a notification or message)
+    },
+  });
+};
+
+// ✅ Utility function to get token from AsyncStorage
+export const getAuthToken = async () => {
+  try {
+    const token = await AsyncStorage.getItem('authToken');
+    return token;
+  } catch (error) {
+    console.error('Error retrieving token from AsyncStorage', error);
+    return null;
+  }
+};
+
+// after it rigth now is confusion
+
+// import {getAuthToken} from './path-to-hooks';
+
+// // Somewhere in your code
+// const token = await getAuthToken();
+// if (token) {
+//   console.log('Token found:', token);
+// } else {
+//   console.log('No token found');
+// }

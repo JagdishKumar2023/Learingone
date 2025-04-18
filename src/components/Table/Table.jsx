@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import {useGetLiveWinningDetails} from '../../apiforgame/useBackendApi';
 
 const Table = () => {
   const headers = ['Period', 'Number', 'Color', 'Size'];
@@ -15,6 +16,9 @@ const Table = () => {
     {period: '202409', number: 6, color: 'Pink', size: 'Large'},
     {period: '202410', number: 4, color: 'Cyan', size: 'Small'},
   ];
+
+  const {data: tableData, loading: isLoading} = useGetLiveWinningDetails();
+  console.log(tableData, 'tableData');
 
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(0);

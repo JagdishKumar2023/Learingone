@@ -1,9 +1,12 @@
-// src/components/InfinityPrimeSplash.js
 import React, {useEffect} from 'react';
 import {View, StyleSheet, Animated, Text} from 'react-native';
 import LottieView from 'lottie-react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
-const SpleshScreen = ({navigation}) => {
+const SplashScreen = ({navigation}) => {
   const fadeAnim = new Animated.Value(0);
   const slideAnim1 = new Animated.Value(50); // For "Invest Smart"
   const slideAnim2 = new Animated.Value(50); // For "Earn Infinite Profit"
@@ -85,10 +88,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   lottie: {
-    width: 400,
-    height: 430,
+    width: wp('80%'), // 80% of the screen width
+    height: hp('40%'), // 40% of the screen height
   },
   textContainer: {
     marginTop: 20,
@@ -96,21 +100,21 @@ const styles = StyleSheet.create({
   highlight: {
     color: '#F7931A',
     fontFamily: 'Verdana',
-    fontSize: 32, // Smallest
+    fontSize: wp('8%'), // Responsive font size based on screen width
     textAlign: 'center',
   },
   primary: {
     color: '#F7931A',
     fontFamily: 'Georgia',
-    fontSize: 31, // Medium
+    fontSize: wp('7.5%'), // Responsive font size based on screen width
     textAlign: 'center',
   },
   secondary: {
     color: 'cyan',
     fontFamily: 'Courier New',
-    fontSize: 30, // Largest
+    fontSize: wp('7%'), // Responsive font size based on screen width
     textAlign: 'center',
   },
 });
 
-export default SpleshScreen;
+export default SplashScreen;

@@ -1,80 +1,139 @@
 import React, {useState, useRef, useCallback} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+  Dimensions,
+} from 'react-native';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import BottomSheet from '@gorhom/bottom-sheet';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {useGetSizeDetails} from '../apiforgame/useBackendApi';
 
-const progressData = [
-  {id: 1, activeStrokeColor: '#06D001'},
-  {id: 2, activeStrokeColor: '#FF6600'},
-  {id: 3, activeStrokeColor: '#DE3163'},
-];
+const {width} = Dimensions.get('window');
+const CIRCLE_RADIUS = width * 0.11;
 
-const BigSmallMini = ({setIsModalVisible}) => {
+const BigSmallMini = ({setIsModalVisible, sizesHandlePost, setMetaData}) => {
+  const {data: sizes, isLoading} = useGetSizeDetails();
   const [selectedId, setSelectedId] = useState(null);
   const bottomSheetRef = useRef(null);
-  const [pausedStates, setPausedStates] = useState({
-    1: false,
-    2: false,
-    3: false,
-  });
+  const [pausedStates, setPausedStates] = useState({});
 
-  const handlePress = id => {
-    setSelectedId(id);
+  const handlePress = item => {
+    setSelectedId(item.id);
     setIsModalVisible(true);
-
-    // Pause only the selected circle
-    setPausedStates(prev => ({...prev, [id]: true}));
-
+    setPausedStates(prev => ({...prev, [item.id]: true}));
     bottomSheetRef.current?.expand();
+    const betDetails = {
+      betType: 'Size',
+      betTypeCode: item?.id,
+    };
+    setMetaData(betDetails);
   };
 
-  const handleSheetChanges = useCallback(index => {
-    if (index === -1) {
-      setSelectedId(null);
+  const handleSheetChanges = useCallback(
+    index => {
+      if (index === -1) {
+        setSelectedId(null);
+        const reset = {};
+        sizes?.data?.forEach((_, index) => {
+          reset[index + 1] = false;
+        });
+        setPausedStates(reset);
+      }
+    },
+    [sizes],
+  );
 
-      setPausedStates({1: false, 2: false, 3: false});
-    }
-  }, []);
+  const sortOrder = ['Big', 'Mini', 'Small'];
+
+  const formattedSizes =
+    sizes?.data
+      ?.map((item, index) => ({
+        id: item._id,
+        label: item.sizeType.charAt(0).toUpperCase() + item.sizeType.slice(1),
+        multiplier: item.multiplier,
+        color: item.color,
+        raw: item,
+      }))
+      .sort(
+        (a, b) => sortOrder.indexOf(a.label) - sortOrder.indexOf(b.label),
+      ) || [];
+
+  const selectedItem = formattedSizes.find(item => item.id === selectedId);
+
+  const renderItem = ({item}) => {
+    let strokeColor = '#27ae60';
+    if (item.label === 'Big') strokeColor = '#DE3163';
+    else if (item.label === 'Mini') strokeColor = '#FFB200';
+    else if (item.label === 'Small') strokeColor = '#06D001';
+    else strokeColor = item.color;
+
+    return (
+      <TouchableOpacity
+        onPress={() => handlePress(item)}
+        activeOpacity={0.7}
+        style={styles.circleWrapper}>
+        <View style={styles.progressContainer}>
+          <CircularProgress
+            value={100}
+            radius={CIRCLE_RADIUS}
+            activeStrokeColor={strokeColor}
+            inActiveStrokeColor={'#9b59b6'}
+            inActiveStrokeOpacity={0.5}
+            inActiveStrokeWidth={CIRCLE_RADIUS * 0.36}
+            activeStrokeWidth={CIRCLE_RADIUS * 0.27}
+            duration={100000}
+            showProgressValue={false}
+            pause={pausedStates[item.id]}
+          />
+        </View>
+        <Text style={[styles.labelText, {color: strokeColor}]}>
+          {item.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
-      <View style={styles.container}>
-        {progressData.map(item => (
-          <TouchableOpacity key={item.id} onPress={() => handlePress(item.id)}>
-            <CircularProgress
-              key={item.id} // Ensure animation updates
-              value={100}
-              radius={55}
-              activeStrokeColor={item.activeStrokeColor}
-              inActiveStrokeColor={'#9b59b6'}
-              inActiveStrokeOpacity={0.5}
-              inActiveStrokeWidth={20}
-              activeStrokeWidth={15}
-              duration={100000}
-              showProgressValue={false}
-              pause={pausedStates[item.id]} // Pause only the selected circle
-            />
-          </TouchableOpacity>
-        ))}
+      <View style={styles.listContainer}>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#6c5ce7" />
+        ) : (
+          <FlatList
+            data={formattedSizes}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            horizontal
+            contentContainerStyle={styles.flatListContent}
+            showsHorizontalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={{width: 16}} />}
+          />
+        )}
       </View>
 
       <BottomSheet
         ref={bottomSheetRef}
-        index={-1} // Start closed
-        snapPoints={['50%']}
+        index={-1}
+        snapPoints={['45%']}
         onChange={handleSheetChanges}
         enablePanDownToClose>
         <View style={styles.contentContainer}>
-          {selectedId !== null && (
+          {selectedItem && (
             <>
+              <Text style={styles.modalText}>Size: {selectedItem.label}</Text>
               <Text style={styles.modalText}>
-                Details for Item {selectedId}
+                Multiplier: {selectedItem.multiplier}x
               </Text>
+              <Text style={styles.modalText}>Color: {selectedItem.color}</Text>
               <TouchableOpacity
                 onPress={() => bottomSheetRef.current?.close()}
                 style={styles.closeButton}>
-                <Text style={{color: 'white', fontWeight: 'bold'}}>Close</Text>
+                <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
             </>
           )}
@@ -85,26 +144,56 @@ const BigSmallMini = ({setIsModalVisible}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    gap: 18,
-    justifyContent: 'space-around',
-    marginTop: 50,
+  listContainer: {
+    marginTop: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flatListContent: {
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+
+  progressContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: CIRCLE_RADIUS * 2,
+    height: CIRCLE_RADIUS * 2,
+  },
+  circleWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: CIRCLE_RADIUS * 2,
+    height: CIRCLE_RADIUS * 2 + 30,
+    marginHorizontal: 8,
+  },
+  labelText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   contentContainer: {
     flex: 1,
-    padding: 36,
+    padding: 24,
     alignItems: 'center',
   },
   modalText: {
     fontSize: 18,
-    marginBottom: 20,
+    marginBottom: 10,
+    fontWeight: '600',
   },
   closeButton: {
     marginTop: 20,
-    backgroundColor: 'red',
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: '#e74c3c',
+    paddingVertical: 10,
+    paddingHorizontal: 34,
+    borderRadius: 8,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

@@ -9,12 +9,15 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useLoginUser} from '../apiforgame/useBackendApi';
 
 const Login = ({navigation}) => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const [userName, setUserName] = useState('');
+  const {mutate: loginUser, isLoading} = useLoginUser();
 
   const validateEmail = email => /\S+@\S+\.\S+/.test(email);
   const validatePhone = phone => /^[6-9]\d{9}$/.test(phone); // Validates 10-digit Indian numbers starting with 6-9
@@ -38,13 +41,38 @@ const Login = ({navigation}) => {
       showModal('Password must be at least 6 characters.');
       return;
     }
-    showModal('Logged in successfully!');
-    setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'TabNavigator'}],
-      });
-    }, 1000);
+
+    let userIdentifier = '';
+
+    if (validateEmail(identifier)) {
+      userIdentifier = 'email';
+    } else if (validatePhone(identifier)) {
+      userIdentifier = 'phoneNumber';
+    }
+
+    const userData = {
+      [userIdentifier]: identifier,
+      password,
+    };
+
+    loginUser(userData, {
+      onSuccess: data => {
+        console.log(data);
+        const name = data?.user?.name || 'Trader'; // fallback
+        setUserName(name);
+        showModal('Logged in successfully!');
+        setTimeout(() => {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'TabNavigator'}],
+          });
+        }, 1000);
+      },
+      onError: err => {
+        showModal('Login failed. Please try again.');
+        console.error(err); // Log error on failure
+      },
+    });
   };
 
   return (
@@ -88,9 +116,13 @@ const Login = ({navigation}) => {
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-        <Text style={styles.signUpLink}>Don't have an account? Sign Up</Text>
-      </TouchableOpacity>
+      {userName ? (
+        <Text style={styles.greetingText}>Hi, Trader {userName}</Text>
+      ) : (
+        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+          <Text style={styles.signUpLink}>Don't have an account? Sign Up</Text>
+        </TouchableOpacity>
+      )}
 
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <View style={styles.modalContainer}>
@@ -156,6 +188,15 @@ const styles = StyleSheet.create({
     color: 'cyan',
     fontSize: 18,
     marginTop: 30,
+  },
+  greetingText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 30,
+    color: 'orange',
+    textShadowColor: '#00ffff',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 5,
   },
   modalContainer: {
     marginTop: '50%',

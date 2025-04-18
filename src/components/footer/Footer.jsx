@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   TextInput,
   Linking,
-  Dimensions,
   Alert,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-const {width} = Dimensions.get('window');
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const Footer = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -25,7 +27,7 @@ const Footer = () => {
     const phoneRegex = /^\d{10}$/;
     if (phoneRegex.test(phoneNumber)) {
       Alert.alert('Success', 'You have subscribed successfully!');
-      setPhoneNumber(''); // Clear input after submission
+      setPhoneNumber('');
     } else {
       Alert.alert(
         'Invalid Number',
@@ -45,11 +47,6 @@ const Footer = () => {
       url: 'https://www.facebook.com/infinityprime',
       icon: 'facebook',
     },
-    {
-      name: 'Twitter',
-      url: 'https://twitter.com/infinityprime',
-      icon: 'twitter',
-    },
   ];
 
   return (
@@ -65,23 +62,49 @@ const Footer = () => {
       </View>
 
       <View style={styles.topSection}>
-        <View style={styles.aboutContainer}>
-          <Text style={styles.sectionTitle}>About Us</Text>
+        <View style={styles.sectionBlock}>
+          <View style={styles.sectionHeader}>
+            <MaterialIcons
+              name="info-outline"
+              size={hp('2.5%')}
+              color="#FFA500"
+            />
+            <Text style={styles.sectionTitle}>About Us</Text>
+          </View>
           <Text style={styles.sectionText}>
             Infinity Prime is dedicated to delivering the best gaming
-            experiences with cutting-edge technology and seamless user
-            interfaces.
+            experiences with cutting‑edge technology and user interfaces.
           </Text>
         </View>
 
-        <View style={styles.contactContainer}>
-          <Text style={styles.sectionTitle}>Contact Us</Text>
+        <View style={styles.sectionBlock}>
+          <View style={styles.sectionHeader}>
+            <MaterialIcons name="contacts" size={hp('2.5%')} color="#FFA500" />
+            <Text style={styles.sectionTitle}>Contact Us</Text>
+          </View>
+          <Text style={styles.sectionText}>Phone: +91‑9876543210</Text>
+          <Text style={styles.sectionText}>
+            Email: support@infinityprime.com
+          </Text>
+          <TouchableOpacity
+            onPress={() => openLink('https://wa.me/919876543210')}>
+            <Text style={[styles.sectionText, styles.linkText]}>
+              Chat with us on WhatsApp
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.subscriptionContainer}>
-          <Text style={styles.sectionTitle}>Get Updates</Text>
+        <View style={styles.sectionBlock}>
+          <View style={styles.sectionHeader}>
+            <MaterialIcons
+              name="notifications-active"
+              size={hp('2.5%')}
+              color="#FFA500"
+            />
+            <Text style={styles.sectionTitle}>Get Updates</Text>
+          </View>
           <TextInput
-            placeholder="Phone No.."
+            placeholder="Phone No."
             placeholderTextColor="#888"
             keyboardType="phone-pad"
             maxLength={10}
@@ -98,12 +121,13 @@ const Footer = () => {
       </View>
 
       <View style={styles.socialContainer}>
-        {socialLinks.map((item, index) => (
+        {socialLinks.map((item, idx) => (
           <TouchableOpacity
-            key={index}
+            key={idx}
             onPress={() => openLink(item.url)}
-            style={styles.linkButton}>
-            <Icon name={item.icon} size={24} color="#FFA500" />
+            style={styles.linkButton}
+            activeOpacity={0.7}>
+            <Icon name={item.icon} size={hp('3%')} color="#FFA500" />
             <Text style={styles.linkText}>{item.name}</Text>
           </TouchableOpacity>
         ))}
@@ -121,110 +145,111 @@ export default Footer;
 const styles = StyleSheet.create({
   footerContainer: {
     backgroundColor: '#121212',
-    paddingVertical: width * 0.05,
-    paddingHorizontal: width * 0.06,
-    borderTopWidth: 1,
+    paddingVertical: hp('4%'),
+    paddingHorizontal: wp('6%'),
+    borderTopWidth: hp('0.3%'),
     borderTopColor: '#FFA500',
-    marginTop: 50,
+    marginTop: hp('2%'), // Reduced margin from top for better alignment
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: hp('3%'),
   },
   logo: {
-    width: 60,
-    height: 60,
+    width: wp('12%'),
+    height: wp('12%'),
   },
   welcomeText: {
     color: '#FFA500',
-    fontSize: width * 0.06,
+    fontSize: wp('5.5%'),
     fontWeight: 'bold',
-    marginLeft: 15,
+    marginLeft: wp('3%'),
   },
+
   topSection: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     flexWrap: 'wrap',
-    marginBottom: width * 0.06,
+    justifyContent: 'space-between',
+    marginBottom: hp('3%'),
   },
-  aboutContainer: {
-    width: '30%',
-    marginBottom: 20,
+  sectionBlock: {
+    width: wp('30%'),
+    minWidth: wp('100%') > 400 ? wp('30%') : wp('100%'),
+    marginBottom: hp('2%'),
   },
-  contactContainer: {
-    width: '30%',
-    marginBottom: 20,
-  },
-  subscriptionContainer: {
-    width: '30%',
-    marginBottom: 20,
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp('1%'),
   },
   sectionTitle: {
     color: '#FFA500',
-    fontSize: width * 0.05,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: wp('4%'),
+    fontWeight: '600',
+    marginLeft: wp('1%'),
   },
   sectionText: {
-    color: '#DDD',
-    fontSize: width * 0.038,
-    lineHeight: 22,
+    color: 'orange',
+    fontSize: wp('3.5%'),
+    lineHeight: hp('2.5%'),
+    marginBottom: hp('0.8%'),
   },
+  linkText: {
+    color: '#4CC9FE',
+    fontSize: wp('3.5%'),
+  },
+
   input: {
     borderWidth: 1,
     borderColor: '#FFA500',
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: wp('1.5%'),
+    paddingVertical: hp('1%'),
+    paddingHorizontal: wp('3%'),
     color: '#FFF',
-    fontSize: width * 0.04,
+    fontSize: wp('3.5%'),
     backgroundColor: '#1F1F1F',
-    marginBottom: 10,
+    marginBottom: hp('1.5%'),
   },
   subscribeButton: {
     backgroundColor: '#FFA500',
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: hp('1.2%'),
+    borderRadius: wp('1.5%'),
     alignItems: 'center',
     elevation: 5,
   },
   subscribeButtonText: {
     color: '#121212',
-    fontSize: width * 0.045,
+    fontSize: wp('4%'),
     fontWeight: 'bold',
   },
+
   socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    gap: width * 0.08,
-    paddingVertical: 20,
+    marginBottom: hp('2%'),
   },
   linkButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
     backgroundColor: '#1F1F1F',
-    borderRadius: 10,
-    marginBottom: 10,
+    paddingVertical: hp('1%'),
+    paddingHorizontal: wp('3%'),
+    borderRadius: wp('1.5%'),
+    margin: wp('1%'),
     elevation: 5,
-    shadowColor: '#FFA500',
-    shadowOffset: {width: 0, height: 3},
+    shadowColor: 'orange',
+    shadowOffset: {width: 0, height: hp('0.5%')},
     shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowRadius: hp('1%'),
   },
-  linkText: {
-    color: '#FFA500',
-    fontSize: width * 0.04,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
+
   footerText: {
     color: '#AAA',
-    fontSize: width * 0.035,
+    fontSize: wp('3%'),
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: hp('2%'),
   },
 });

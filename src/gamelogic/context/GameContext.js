@@ -48,6 +48,7 @@ const gameReducer = (state, action) => {
         isSuccessful: !state.isSuccessful,
       };
 
+    case 'ADD_WINNINGS':
       return {
         ...state,
         wallet: state.wallet + winnings,

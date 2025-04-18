@@ -10,7 +10,7 @@ import {Circle, Svg} from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const Rings = ({ringsColors}) => {
+const Rings = ({ringsColors, setMetaData}) => {
   const strokeWidth = 5;
   const gap = 5;
   const radius1 = 35; // Outer circle
@@ -23,7 +23,6 @@ const Rings = ({ringsColors}) => {
   const duration2 = 50000; // Animation duration
   const duration3 = 50000; // Animation duration
 
-  // Separate stroke offsets for each circle
   const strokeOffset1 = useSharedValue(circumference1);
   const strokeOffset2 = useSharedValue(circumference2);
   const strokeOffset3 = useSharedValue(circumference3);
@@ -46,7 +45,6 @@ const Rings = ({ringsColors}) => {
     () => ((circumference3 - strokeOffset3.value) / circumference3) * 100,
   );
 
-  // Dynamic stroke color based on percentage
   const strokeColor1 = useDerivedValue(() =>
     interpolateColor(percentage1.value, [0, 50, 100], ringsColors.stroke1),
   );

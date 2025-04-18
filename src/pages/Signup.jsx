@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useRegisterUser} from '../apiforgame/useBackendApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignUp = ({navigation}) => {
   const [username, setUsername] = useState('');
@@ -21,10 +23,9 @@ const SignUp = ({navigation}) => {
   const [modalMessage, setModalMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const {mutate: registerUser, isLoading} = useRegisterUser();
 
-  // eslint-disable-next-line no-shadow
   const validateEmail = email => /\S+@\S+\.\S+/.test(email);
-  // eslint-disable-next-line no-shadow
   const validateMobile = mobile => /^[0-9]{10}$/.test(mobile);
 
   const showModal = message => {
@@ -33,8 +34,19 @@ const SignUp = ({navigation}) => {
     setTimeout(() => setModalVisible(false), 2000);
   };
 
+  // const registerUser = async userData => {
+  //   try {
+  //     const data = mutate(userData);
+  //     console.log('User registered successfully:', data); // Log the response
+  //     return data;
+  //   } catch (error) {
+  //     console.error('Registration failed:', error);
+  //     throw error; // Propagate error
+  //   }
+  // };
+
   const handleSignUp = () => {
-    if (!username || !email || !mobile || !password || !confirmPassword) {
+    if (!username || !email || !mobile || !password) {
       showModal('All fields are required.');
       return;
     }
@@ -50,17 +62,30 @@ const SignUp = ({navigation}) => {
       showModal('Password must be at least 6 characters.');
       return;
     }
-    if (password !== confirmPassword) {
-      showModal('Passwords do not match.');
-      return;
-    }
-    showModal('Account created successfully!');
-    setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Login'}],
-      });
-    }, 1500);
+    // if (password !== confirmPassword) {
+    //   showModal('Passwords do not match.');
+    //   return;
+    // }
+
+    const userData = {fullName: username, email, phoneNumber: mobile, password};
+
+    registerUser(userData, {
+      onSuccess: async data => {
+        showModal('Account created successfully!');
+        await AsyncStorage.setItem('userData', data);
+        console.log(data, 'data'); // Log data on success
+        setTimeout(() => {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Login'}],
+          });
+        }, 1000);
+      },
+      onError: err => {
+        showModal('Registration failed. Please try again.');
+        console.error(err); // Log error on failure
+      },
+    });
   };
 
   return (
@@ -123,7 +148,7 @@ const SignUp = ({navigation}) => {
           />
         </TouchableOpacity>
       </View>
-      <View style={styles.passwordContainer}>
+      {/* <View style={styles.passwordContainer}>
         <TextInput
           style={styles.passwordInput}
           placeholder="Confirm Password"
@@ -140,10 +165,15 @@ const SignUp = ({navigation}) => {
             color="orange"
           />
         </TouchableOpacity>
-      </View>
+      </View> */}
 
-      <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-        <Text style={styles.signUpText}>Sign Up</Text>
+      <TouchableOpacity
+        style={styles.signUpButton}
+        onPress={handleSignUp}
+        disabled={isLoading}>
+        <Text style={styles.signUpText}>
+          {isLoading ? 'Signing Up...' : 'Sign Up'}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>

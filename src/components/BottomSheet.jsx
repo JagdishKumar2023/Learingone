@@ -18,17 +18,18 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import {useGame} from '../gamelogic/context/GameContext';
+import {useAddBetDataDetails} from '../apiforgame/useBackendApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width, height} = Dimensions.get('window');
 const PRESET_AMOUNTS = [200, 500, 1000, 5000, 10000];
 
-const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
+const BetModal = ({onClose, modalColor = '#fff', selectedRing, metaData}) => {
   const bottomSheetRef = useRef(null);
   const [betAmount, setBetAmount] = useState(200);
-  const [customAmount, setCustomAmount] = useState('');
   const progress = useSharedValue(0);
   const progressWidth = useSharedValue(0);
-  const {dispatch, currentState} = useGame();
+  const {dispatch, state: currentState} = useGame();
   const {mutate, isLoading, isError, isSuccess} =
     useAddBetDataDetails(dispatch);
 
@@ -55,10 +56,10 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
     }
   };
 
-  const placeBet = () => {
+  const placeBet = async () => {
     if (isLoading) return;
 
-    const finalAmount = customAmount ? parseInt(customAmount, 10) : betAmount;
+    const finalAmount = parseInt(betAmount);
 
     if (isNaN(finalAmount) || finalAmount <= 0) {
       showToast('❌ Please enter a valid amount!', false);
@@ -67,11 +68,11 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
 
     console.log(`Placing bet: Amount: ₹${finalAmount}`);
     progress.value = withTiming(1, {
-      duration: 1000,
+      duration: 500,
       easing: Easing.inOut(Easing.ease),
     });
     progressWidth.value = withTiming(width * 0.8, {
-      duration: 1000,
+      duration: 500,
       easing: Easing.linear,
     });
 
@@ -102,7 +103,22 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
       if (isSuccessful) {
         bottomSheetRef.current?.close();
       }
-    }, 1200);
+    }, 800);
+    const rawData = await AsyncStorage.getItem('periodMetaData');
+    const periodMetaData = rawData ? JSON.parse(rawData) : null;
+    console.log('periodMetaData', periodMetaData);
+    const userDetails = await AsyncStorage.getItem('userData');
+    const userData = userDetails ? JSON.parse(userDetails) : null;
+    console.log('userData', userData);
+    const payload = {
+      userId: userData?._id,
+      amount: betAmount,
+      betType: metaData?.betType,
+      betTypeCode: metaData?.betTypeCode,
+      periodNumber: periodMetaData?.currentPeriodNumber,
+      periodTypeInMin: currentPeriodNumber?.periodTpeInSec,
+    };
+    console.log('metaData', metaData, payload);
   };
 
   return (
@@ -121,10 +137,9 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
             style={styles.input}
             placeholder="₹ Enter Amount"
             keyboardType="numeric"
-            value={customAmount}
+            value={betAmount}
             onChangeText={text => {
-              setCustomAmount(text);
-              if (text) setBetAmount(null);
+              setBetAmount(text);
             }}
           />
           <Text style={styles.subtitle}>Select Amount:</Text>
@@ -138,9 +153,7 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
                 ]}
                 onPress={() => {
                   setBetAmount(amount);
-                  setCustomAmount('');
-                }}
-                disabled={customAmount !== ''}>
+                }}>
                 <Text style={styles.presetButtonText}>₹{amount}</Text>
               </TouchableOpacity>
             ))}
@@ -151,10 +164,10 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing}) => {
             />
           </View>
           <TouchableOpacity
-            style={[styles.placeBetButton, isProcessing && {opacity: 0.5}]}
+            style={[styles.placeBetButton, isLoading && {opacity: 0.5}]}
             activeOpacity={0.7}
             onPress={placeBet}
-            disabled={isProcessing}>
+            disabled={isLoading}>
             <Text style={styles.placeBetButtonText}>Place Bet</Text>
           </TouchableOpacity>
         </BottomSheetView>

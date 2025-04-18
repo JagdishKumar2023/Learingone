@@ -5,6 +5,8 @@ import {
   View,
   Text,
   StyleSheet,
+  Dimensions,
+  SafeAreaView,
 } from 'react-native';
 import Timer from '../components/timer/Timer';
 import BigSmallMini from '../BigSmallMini/BigSmallMini';
@@ -16,30 +18,13 @@ import Modal from '../components/BottomSheet';
 import {useGame} from './../gamelogic/context/GameContext';
 import {
   useAddColorDetails,
+  useAddSizeDetails,
   useGetBetDetailsById,
   useGetColorDetails,
   useGetLiveWinningDetails,
   useGetNumberDetails,
   useGetSizeDetails,
 } from '../apiforgame/useBackendApi';
-
-// const ringsData = [
-//   {
-//     stroke1: ['green', 'blue', '#DE3163'],
-//     stroke2: ['#DE3163', 'aqua', 'aqua'],
-//     stroke3: ['#DE3163', 'green', '#DE3163'],
-//   },
-//   {
-//     stroke1: ['#69247C', 'blue', '#850F8D'],
-//     stroke2: ['red', 'aqua', 'aqua'],
-//     stroke3: ['#69247C', 'blue', '#850F8D'],
-//   },
-//   {
-//     stroke1: ['red', 'blue', '#06D001'],
-//     stroke2: ['red', 'aqua', 'aqua'],
-//     stroke3: ['red', 'violet', '#06D001'],
-//   },
-// ];
 
 const ringsColors = {
   red: {
@@ -61,14 +46,16 @@ const ringsColors = {
 
 const Game = () => {
   const {data: res, isError} = useGetColorDetails();
-
+  const {mutate: addSizeDetails} = useAddSizeDetails();
   const {state, dispatch} = useGame();
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [modalColor, setModalColor] = useState('white');
   const [selectedColors, setSelectedColors] = useState('');
   const [sortedData, setSortedData] = useState([]);
   const [selectedRing, setSelectedRing] = useState({});
+  const [metaData, setMetaData] = useState({});
 
   const handleTimerEnd = () => {
     setShowOverlay(false);
@@ -90,107 +77,118 @@ const Game = () => {
     const currentRingColor = ringsColors[currentRingData.colorName];
     const lastColor =
       currentRingColor.stroke3[currentRingColor.stroke3.length - 1];
-    console.log('lastColor:', lastColor);
     setModalColor(lastColor);
     setSelectedColors(currentRingColor.stroke3);
     setIsModalVisible(true);
     setSelectedColors(currentRingData);
+    const betDetails = {
+      betType: 'Color',
+      betTypeCode: currentRingData?._id,
+    };
+    setMetaData(betDetails);
   };
 
-  // const {data: number, error: isNumberError} = useGetNumberDetails();
+  const handleNumberPress = data => {
+    setIsModalVisible(true);
+    const betDetails = {
+      betType: 'Number',
+      betTypeCode: data?._id,
+    };
+    setMetaData(betDetails);
+  };
 
-  // const {data: size, error: isSizeError} = useGetSizeDetails();
+  const sizesHandlePost = () => {
+    const payload = {
+      userId: '',
+      amount: '',
+      betType: 'Size',
+      betTypeCode: '',
+      periodNumber: '',
+      periodTypeInMin: 1,
+    };
 
-  // const {data: winner, error: isWinner} = useGetLiveWinningDetails();
-
-  // const {data: betDetails, error: isBetDetails} = useGetBetDetailsById();
-
-  // const {data: addColor, error: isAddColor} = useAddColorDetails();
-
-  // console.log('addColor', addColor); // addColor is problem
-
-  // const {data: winnerLive, error: isWinnerLive} = useGetLiveWinningDetails();
-
-  // console.log('winnerLive', winnerLive);
-
-  // console.log(winner, 'winner');
+    addSizeDetails(payload, {
+      onSuccess: data => {
+        console.log('✅ Bet placed successfully:', data);
+      },
+      onError: error => {
+        console.error('❌ Error placing bet:', error);
+      },
+    });
+  };
 
   useEffect(() => {
     if (res?.data.length) {
       let tempData = res.data;
-
       [tempData[0], tempData[1], tempData[2]] = [
         tempData[0],
         tempData[2],
         tempData[1],
       ];
-
       setSortedData(tempData);
     }
   }, [res]);
 
-  console.log('colorDetails', res);
-  // console.log('Numbers', number);
-  // console.log('size', size);
-
   return (
-    <>
+    <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Timer onFiveSecondsRemaining={handleFiveSecondsRemaining} />
         <View>
           {showOverlay && <TimerOverlay onTimerEnd={handleTimerEnd} />}
           <View style={styles.gameSection}>
-            <View style={{flexDirection: 'row'}}>
-              {sortedData.map((ringsData, index) => {
-                return (
-                  <TouchableOpacity
-                    onPress={() => handlePress(ringsData)}
-                    activeOpacity={0.5}
-                    key={index}>
-                    <Rings
-                      key={index}
-                      ringsColors={ringsColors[ringsData.colorName]}
-                    />
-                  </TouchableOpacity>
-                );
-              })}
+            <View style={styles.ringsRow}>
+              {sortedData.map((ringsData, index) => (
+                <TouchableOpacity
+                  onPress={() => handlePress(ringsData)}
+                  activeOpacity={0.5}
+                  key={index}
+                  style={styles.ringItem}>
+                  <Rings ringsColors={ringsColors[ringsData.colorName]} />
+                </TouchableOpacity>
+              ))}
             </View>
+
             <Number
               isModalVisible={isModalVisible}
-              setIsModalVisible={setIsModalVisible}
+              setIsModalVisible={handleNumberPress}
               colors={selectedColors}
             />
+
             <BigSmallMini
               setIsModalVisible={setIsModalVisible}
               colors={selectedColors}
+              sizesHandlePost={sizesHandlePost}
+              setMetaData={setMetaData}
             />
           </View>
         </View>
+
         <View style={styles.buttonRow}>
           <CommonButton
             title={'Game History'}
-            width="40%"
-            onPress={() => console.log(state.history)}
+            width="45%"
+            onPress={sizesHandlePost}
           />
-          <CommonButton title={'My Orders'} width="40%" />
+          <CommonButton title={'My Orders'} width="45%" />
         </View>
+
         <View style={{flex: 1}}>
           <Table />
         </View>
       </ScrollView>
+
       {isModalVisible && (
         <Modal
           onClose={() => setIsModalVisible(false)}
           modalColor={modalColor}
           colors={selectedColors}
           selectedRing={selectedRing}
+          metaData={metaData}
         />
       )}
-    </>
+    </SafeAreaView>
   );
 };
-
-export default Game;
 
 const TimerOverlay = ({onTimerEnd}) => {
   const [seconds, setSeconds] = useState(5);
@@ -211,16 +209,22 @@ const TimerOverlay = ({onTimerEnd}) => {
   );
 };
 
+const {width} = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   scrollContainer: {
     gap: 12,
     backgroundColor: 'black',
+    paddingBottom: 20,
+    paddingHorizontal: 10,
+    flexGrow: 1,
   },
   gameSection: {
-    borderWidth: 1,
-    borderColor: 'blue',
+    borderWidth: 3,
+    borderColor: 'white',
     borderRadius: 8,
     padding: 12,
+    marginTop: 10,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -237,7 +241,18 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
+    marginVertical: 12,
+    paddingHorizontal: 8,
+  },
+  ringsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+  },
+  ringItem: {
+    flex: 1,
+    alignItems: 'center',
   },
   walletText: {
     color: 'white',
@@ -247,3 +262,5 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
 });
+
+export default Game;

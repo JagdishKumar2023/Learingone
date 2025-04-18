@@ -8,6 +8,10 @@ import {
   ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const Accordion = () => {
   const [expandedSection, setExpandedSection] = useState(null);
@@ -97,7 +101,7 @@ const Accordion = () => {
             • Sizing (Big/Mini/Small): Payout — 2x
           </Text>
           <Text style={styles.subText}>
-            • This payout is dynamic it chnange as market condition.
+            • This payout is dynamic and changes with market conditions.
           </Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 3:</Text> Place your investment and
@@ -128,7 +132,7 @@ const Accordion = () => {
           </Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 3:</Text> Take a Bank account
-            identity confirmation is must for withdraw It take time to 24 hours.
+            identity confirmation is must for withdrawal. It takes 24 hours.
           </Text>
           <Text style={styles.bulletPoint}>
             <Text style={styles.step}>Step 4:</Text> Submit your details —
@@ -178,49 +182,51 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
-    padding: 20,
+    padding: wp('5%'),
   },
   header: {
-    fontSize: 32,
+    fontSize: wp('8%'),
     fontWeight: 'bold',
     color: '#FFA500',
-    marginBottom: 20,
+    marginBottom: hp('2%'), // Reduced the space below the header
     textAlign: 'center',
   },
   accordion: {
     backgroundColor: '#FFA500',
-    padding: 20,
-    borderRadius: 15,
+    paddingVertical: wp('3%'), // Reduced vertical padding
+    paddingHorizontal: wp('5%'),
+    borderRadius: wp('2%'),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: hp('1.5%'), // Reduced bottom margin
   },
   accordionTitle: {
-    fontSize: 24,
+    fontSize: wp('5.5%'), // Reduced font size for the title
     fontWeight: 'bold',
     color: '#121212',
   },
   accordionContent: {
     backgroundColor: '#1C1C1C',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 15,
+    paddingVertical: wp('3%'), // Reduced vertical padding
+    paddingHorizontal: wp('4%'),
+    borderRadius: wp('2%'),
+    marginBottom: hp('1%'), // Reduced margin bottom
   },
   contentContainer: {
-    paddingLeft: 10,
+    paddingLeft: wp('2%'),
   },
   bulletPoint: {
     color: '#FFF',
-    fontSize: 20,
-    marginBottom: 8,
+    fontSize: wp('3.5%'), // Reduced font size
+    marginBottom: hp('0.5%'), // Reduced margin bottom
     textAlign: 'left',
   },
   subText: {
     color: '#BBB',
-    fontSize: 18,
-    paddingLeft: 20,
-    marginBottom: 8,
+    fontSize: wp('3%'), // Reduced font size
+    paddingLeft: wp('3%'),
+    marginBottom: hp('0.5%'), // Reduced margin bottom
     textAlign: 'left',
   },
   step: {

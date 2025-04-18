@@ -1,22 +1,29 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {TouchableOpacity, View, Dimensions, FlatList} from 'react-native';
-import Svg, {Path, Defs, LinearGradient, Stop} from 'react-native-svg';
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+  Text as SvgText,
+} from 'react-native-svg';
+import {useGetNumberDetails} from '../../apiforgame/useBackendApi';
 
 const {width} = Dimensions.get('window');
-const size = width * 0.15;
+const size = width * 0.14;
 const radius = size / 1;
 
 const numbers = [
-  {value: 1, colors: ['purple', '#DE3163']},
-  {value: 2, colors: ['green']},
-  {value: 3, colors: ['#DE3163']},
-  {value: 4, colors: ['green']},
-  {value: 5, colors: ['#DE3163']},
-  {value: 6, colors: ['purple', 'green']},
-  {value: 7, colors: ['#DE3163']},
-  {value: 8, colors: ['green']},
-  {value: 9, colors: ['#DE3163']},
-  {value: 10, colors: ['green']},
+  {value: 0, colors: ['purple', '#DE3163']},
+  {value: 1, colors: ['green']},
+  {value: 2, colors: ['#DE3163']},
+  {value: 3, colors: ['green']},
+  {value: 4, colors: ['#DE3163']},
+  {value: 5, colors: ['purple', 'green']},
+  {value: 6, colors: ['#DE3163']},
+  {value: 7, colors: ['green']},
+  {value: 8, colors: ['#DE3163']},
+  {value: 9, colors: ['green']},
 ];
 
 const PieChart = ({colors, number}) => {
@@ -29,7 +36,12 @@ const PieChart = ({colors, number}) => {
   `;
 
   return (
-    <View style={{margin: width * 0.02}}>
+    <View
+      style={{
+        margin: width * 0.02,
+        borderRadius: 8, // Added borderRadius here for the number circle
+        overflow: 'hidden', // Ensures the border radius is respected within the Svg
+      }}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <Defs>
           <LinearGradient
@@ -47,13 +59,28 @@ const PieChart = ({colors, number}) => {
             ))}
           </LinearGradient>
         </Defs>
+
         <Path d={fullSqurePath} fill={`url(#gradient-${number})`} />
+
+        <SvgText
+          x={size / 2}
+          y={size / 2 + 6}
+          fontSize={18}
+          fill="#fff"
+          fontWeight="bold"
+          textAnchor="middle">
+          {number}
+        </SvgText>
       </Svg>
     </View>
   );
 };
 
 const Number = ({setIsModalVisible}) => {
+  const [numberDetails, setNumberDetails] = useState([]);
+  const {data: number, error: isNumberError} = useGetNumberDetails();
+  console.log('numbernumber', number?.data);
+
   return (
     <View style={{alignItems: 'center'}}>
       <FlatList
@@ -62,8 +89,12 @@ const Number = ({setIsModalVisible}) => {
         keyExtractor={item => item.value.toString()}
         contentContainerStyle={{alignItems: 'center'}}
         renderItem={({item}) => (
-          <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-            <PieChart colors={item.colors} number={item.value} />
+          <TouchableOpacity
+            onPress={() => setIsModalVisible(number?.data[item.value])}>
+            <PieChart
+              colors={item.colors}
+              number={number?.data[item.value]?.content}
+            />
           </TouchableOpacity>
         )}
       />

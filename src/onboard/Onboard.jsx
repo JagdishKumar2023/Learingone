@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,6 @@ import {
   StyleSheet,
   Alert,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,14 +16,15 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
   withRepeat,
+  Easing,
 } from 'react-native-reanimated';
 import LottieView from 'lottie-react-native';
 import HeaderImage from '../assets/headerImage.svg';
-import {Easing} from 'react-native-reanimated';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view'; // Import the library
 
 const slides = [
   {
@@ -51,10 +48,10 @@ const slides = [
 const Onboard = ({navigation}) => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const flatListRef = useRef(null);
-  const inputRef = useRef(null);
-
   const rotation = useSharedValue(0);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (currentIndex === 0) {
@@ -66,7 +63,7 @@ const Onboard = ({navigation}) => {
     } else {
       rotation.value = withTiming(0);
     }
-  }, [currentIndex]);
+  }, [currentIndex, rotation]);
 
   const animatedSvgStyle = useAnimatedStyle(() => ({
     transform: [{rotate: `${rotation.value}deg`}],
@@ -78,11 +75,10 @@ const Onboard = ({navigation}) => {
 
   const completeOnboarding = async () => {
     if (mobileNumber.length !== 10) {
-      Alert.alert(
+      return Alert.alert(
         'Invalid Number',
         'Please enter a valid 10-digit mobile number.',
       );
-      return;
     }
     await AsyncStorage.setItem('userMobileNumber', mobileNumber);
     await AsyncStorage.setItem('isFirstTime', 'false');
@@ -92,9 +88,18 @@ const Onboard = ({navigation}) => {
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
       flatListRef.current.scrollToIndex({index: currentIndex + 1});
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex(i => i + 1);
     } else {
       completeOnboarding();
+    }
+  };
+
+  const handleSlideChange = e => {
+    const pageWidth = e.nativeEvent.layoutMeasurement.width;
+    const idx = Math.round(e.nativeEvent.contentOffset.x / pageWidth);
+    setCurrentIndex(idx);
+    if (slides[idx].showInput && inputRef.current) {
+      inputRef.current.focus();
     }
   };
 
@@ -122,61 +127,58 @@ const Onboard = ({navigation}) => {
           style={styles.input}
           placeholder="Enter your mobile number"
           placeholderTextColor="#fff"
-          keyboardType="numeric"
+          keyboardType="phone-pad"
+          returnKeyType="done"
           maxLength={10}
           value={mobileNumber}
           onChangeText={handleNumberInput}
+          onFocus={() => setIsInputFocused(true)}
+          onBlur={() => setIsInputFocused(false)}
         />
       )}
     </View>
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <LinearGradient
-          colors={['#1A1A1D', '#FF8C00']}
-          style={styles.gradientBackground}>
-          <FlatList
-            ref={flatListRef}
-            data={slides}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item.id}
-            renderItem={renderItem}
-            keyboardShouldPersistTaps="handled"
-            onMomentumScrollEnd={e => {
-              const index = Math.round(
-                e.nativeEvent.contentOffset.x / wp('100%'),
-              );
-              setCurrentIndex(index);
-            }}
-          />
-          <View style={styles.footer}>
-            {currentIndex < slides.length - 1 ? (
-              <TouchableOpacity onPress={handleNext} style={styles.iconButton}>
-                <Ionicons name="arrow-forward" size={hp('4%')} color="white" />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  mobileNumber.length === 10
-                    ? styles.buttonActive
-                    : styles.buttonDisabled,
-                ]}
-                onPress={completeOnboarding}
-                disabled={mobileNumber.length !== 10}>
-                <Text style={styles.buttonText}>Get Started</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </LinearGradient>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      resetScrollToCoords={{x: 0, y: 0}} // Ensure the scroll position resets when keyboard appears
+      scrollEnabled={!isInputFocused} // Disable scroll when input is focused
+      keyboardShouldPersistTaps="handled">
+      <LinearGradient
+        colors={['#1A1A1D', '#FF8C00']}
+        style={styles.gradientBackground}>
+        <FlatList
+          ref={flatListRef}
+          data={slides}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={item => item.id}
+          renderItem={renderItem}
+          onMomentumScrollEnd={handleSlideChange}
+        />
+        <View style={styles.footer}>
+          {currentIndex < slides.length - 1 ? (
+            <TouchableOpacity onPress={handleNext} style={styles.iconButton}>
+              <Ionicons name="arrow-forward" size={hp('4%')} color="white" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.button,
+                mobileNumber.length === 10
+                  ? styles.buttonActive
+                  : styles.buttonDisabled,
+              ]}
+              onPress={completeOnboarding}
+              disabled={mobileNumber.length !== 10}>
+              <Text style={styles.buttonText}>Get Started</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </LinearGradient>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -185,6 +187,7 @@ const styles = StyleSheet.create({
   gradientBackground: {flex: 1},
   slideContainer: {
     width: wp('100%'),
+    height: hp('90%'),
     alignItems: 'center',
     justifyContent: 'center',
     padding: wp('5%'),
@@ -213,21 +216,36 @@ const styles = StyleSheet.create({
   },
   input: {
     width: wp('85%'),
-    padding: hp('2%'),
+    height: hp('6%'),
+    paddingHorizontal: wp('3%'),
     borderWidth: 1.5,
     borderColor: '#FFA500',
-    borderRadius: 12,
+    borderRadius: wp('2%'),
     color: 'white',
     backgroundColor: '#333',
     textAlign: 'center',
-    minHeight: hp('6%'),
     marginTop: hp('2%'),
   },
   lottie: {width: wp('70%'), height: hp('35%'), marginBottom: hp('2%')},
-  button: {padding: hp('2%'), borderRadius: 10, alignItems: 'center'},
+  footer: {alignItems: 'center', paddingVertical: hp('2%')},
+  iconButton: {
+    backgroundColor: '#FFA500',
+    padding: hp('1.5%'),
+    borderRadius: wp('3%'),
+  },
+  button: {
+    padding: hp('2%'),
+    borderRadius: wp('3%'),
+    alignItems: 'center',
+    width: wp('50%'),
+  },
   buttonActive: {backgroundColor: '#FFA500'},
   buttonDisabled: {backgroundColor: '#555'},
-  buttonText: {color: 'white', fontSize: hp('2.5%'), fontWeight: 'bold'},
+  buttonText: {
+    color: 'white',
+    fontSize: hp('2.5%'),
+    fontWeight: 'bold',
+  },
 });
 
 export default Onboard;
