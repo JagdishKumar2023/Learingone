@@ -86,7 +86,6 @@ const BigSmallMini = ({setIsModalVisible, sizesHandlePost, setMetaData}) => {
             inActiveStrokeOpacity={0.5}
             inActiveStrokeWidth={CIRCLE_RADIUS * 0.36}
             activeStrokeWidth={CIRCLE_RADIUS * 0.27}
-            duration={100000}
             showProgressValue={false}
             pause={pausedStates[item.id]}
           />

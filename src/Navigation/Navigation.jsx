@@ -7,6 +7,7 @@ import Transactions from '../components/profilesection/profilepages/Transactions
 import Ekyc from '../components/profilesection/profilepages/Ekyc';
 import Support from '../components/profilesection/profilepages/Support';
 import About from '../components/profilesection/profilepages/About';
+import PaymentDetails from '../upipayment/PaymentDetails';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ function RootStack() {
         <Stack.Screen name="eKYC" component={Ekyc} />
         <Stack.Screen name="Support" component={Support} />
         <Stack.Screen name="About" component={About} />
+        <Stack.Screen name="PaymentDetails" component={PaymentDetails} />
       </Stack.Navigator>
     </NavigationContainer>
   );

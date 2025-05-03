@@ -1,8 +1,20 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  ActivityIndicator,
+  ScrollView,
+  FlatList,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useGetLiveWinningDetails} from '../../apiforgame/useBackendApi';
+import {useLiveWinningDetails} from '../../hooks/useLiveWinningDetails';
+
+const {width, height} = Dimensions.get('window');
 
 const Table = () => {
   const headers = ['Period', 'Number', 'Color', 'Size'];
@@ -18,14 +30,27 @@ const Table = () => {
   ];
 
   const {data: tableData, loading: isLoading} = useGetLiveWinningDetails();
-  console.log(tableData, 'tableData');
+  const [localData, setLocalData] = useState(data);
 
-  const itemsPerPage = 5;
-  const [currentPage, setCurrentPage] = useState(0);
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const displayedData = data.slice(
+  useEffect(() => {
+    if (tableData && tableData.data && tableData.data.length > 0) {
+      // Transform API data to match our table format
+      const transformedData = tableData.data.map(item => ({
+        period: item.periodNumber || 'N/A',
+        number: item.number || 'N/A',
+        color: item.color || 'N/A',
+        size: item.size || 'N/A',
+      }));
+      setLocalData(transformedData);
+    }
+  }, [tableData]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(localData.length / itemsPerPage);
+  const displayedData = localData.slice(
+    (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
-    (currentPage + 1) * itemsPerPage,
   );
 
   const getIcon = (column, value) => {
@@ -57,142 +82,183 @@ const Table = () => {
         return '#FFCDD2'; // Light red
       case 'green':
         return '#C8E6C9'; // Light green
+      case 'blue':
+        return '#BBDEFB'; // Light blue
+      case 'yellow':
+        return '#FFF9C4'; // Light yellow
+      case 'purple':
+        return '#E1BEE7'; // Light purple
+      case 'orange':
+        return '#FFE0B2'; // Light orange
+      case 'pink':
+        return '#F8BBD0'; // Light pink
+      case 'cyan':
+        return '#B2EBF2'; // Light cyan
       default:
         return 'transparent';
     }
   };
 
+  const renderItem = ({item}) => (
+    <View style={styles.row}>
+      {Object.entries(item).map(([key, value], colIndex) => (
+        <View
+          key={`${item.period}-${colIndex}`}
+          style={[
+            styles.cell,
+            key === 'Color' ? {backgroundColor: getBackgroundColor(value)} : {},
+          ]}>
+          {getIcon(key, value)}
+          <Text style={styles.cellText}> {value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Prime Rings Results History</Text>
+
       {/* Table Header */}
       <LinearGradient colors={['#FF9800', '#F57C00']} style={styles.rowHeader}>
         {headers.map((header, index) => (
-          <Text key={index} style={styles.header}>
+          <Text key={`header-${index}`} style={styles.header}>
             {header}
           </Text>
         ))}
       </LinearGradient>
 
       {/* Table Data */}
-      <View style={styles.scrollContainer}>
-        {displayedData.map((item, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {Object.entries(item).map(([key, value], colIndex) => (
-              <View
-                key={colIndex}
-                style={[
-                  styles.cell,
-                  key === 'Color'
-                    ? {backgroundColor: getBackgroundColor(value)}
-                    : {},
-                ]}>
-                {getIcon(key, value)}
-                <Text style={styles.cellText}> {value}</Text>
-              </View>
-            ))}
-          </View>
-        ))}
-      </View>
+      <FlatList
+        data={displayedData}
+        renderItem={renderItem}
+        keyExtractor={item => `period-${item.period}-${Math.random()}`}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        style={styles.flatList}
+      />
 
       {/* Pagination Controls */}
       <View style={styles.paginationContainer}>
         <TouchableOpacity
-          onPress={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
+          onPress={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
           style={[
-            styles.pageButton,
-            currentPage === 0 && styles.disabledButton,
-          ]}
-          disabled={currentPage === 0}>
-          <Icon name="chevron-left" size={16} color="white" />
+            styles.paginationButton,
+            currentPage === 1 && styles.disabledButton,
+          ]}>
+          <Text style={styles.paginationButtonText}>Previous</Text>
         </TouchableOpacity>
-        <Text style={styles.pageIndicator}>
-          {currentPage + 1} / {totalPages}
+
+        <Text style={styles.pageInfo}>
+          Page {currentPage} of {totalPages}
         </Text>
+
         <TouchableOpacity
-          onPress={() =>
-            setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))
-          }
+          onPress={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
           style={[
-            styles.pageButton,
-            currentPage === totalPages - 1 && styles.disabledButton,
-          ]}
-          disabled={currentPage === totalPages - 1}>
-          <Icon name="chevron-right" size={16} color="white" />
+            styles.paginationButton,
+            currentPage === totalPages && styles.disabledButton,
+          ]}>
+          <Text style={styles.paginationButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
+export default Table;
+
 const styles = StyleSheet.create({
   container: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    width: '100%',
     flex: 1,
-    backgroundColor: 'black',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 5},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
+    backgroundColor: '#121212',
+    paddingVertical: height * 0.02,
+    paddingHorizontal: width * 0.05,
+  },
+  title: {
+    fontSize: width * 0.05,
+    color: '#FFA500',
+    fontWeight: 'bold',
+    marginBottom: height * 0.02,
+    textAlign: 'center',
   },
   rowHeader: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    paddingVertical: 10,
+    padding: height * 0.015,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   header: {
     flex: 1,
+    color: '#FFFFFF',
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#fff',
-    fontSize: 16,
+    fontSize: width * 0.04,
+  },
+  flatList: {
+    flex: 1,
+  },
+  list: {
+    paddingBottom: height * 0.01,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: height * 0.015,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   cell: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 5,
   },
   cellText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginLeft: 6,
+    fontSize: width * 0.035,
   },
   paginationContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: height * 0.02,
   },
-  pageButton: {
-    padding: 10,
-    marginHorizontal: 10,
-    backgroundColor: 'orange',
+  paginationButton: {
+    backgroundColor: '#FFA500',
+    paddingVertical: height * 0.01,
+    paddingHorizontal: width * 0.05,
     borderRadius: 5,
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#666',
   },
-  pageIndicator: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
+  paginationButtonText: {
+    color: '#fff',
+    fontSize: width * 0.035,
+  },
+  pageInfo: {
+    color: '#fff',
+    fontSize: width * 0.035,
+  },
+  loadingContainer: {
+    padding: height * 0.05,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    marginTop: height * 0.01,
+    fontSize: width * 0.04,
+  },
+  emptyContainer: {
+    padding: height * 0.05,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: '#9E9E9E',
+    marginTop: height * 0.01,
+    fontSize: width * 0.04,
   },
 });
-
-export default Table;

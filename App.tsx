@@ -1,4 +1,5 @@
 import React from 'react';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import RootStack from './src/Navigation/Navigation';
 import {GameProvider} from './src/gamelogic/context/GameContext';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
@@ -8,11 +9,13 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <GameProvider>
-        <RootStack />
-      </GameProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <QueryClientProvider client={queryClient}>
+        <GameProvider>
+          <RootStack />
+        </GameProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 };
 

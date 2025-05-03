@@ -28,19 +28,19 @@ import {
 
 const ringsColors = {
   red: {
-    stroke1: ['green', 'blue', '#DE3163'],
-    stroke2: ['#DE3163', 'aqua', 'aqua'],
-    stroke3: ['#DE3163', 'green', '#DE3163'],
+    stroke1: ['#ff0000'],
+    stroke2: ['aqua'],
+    stroke3: ['#ff0000']
   },
-  violet: {
-    stroke1: ['#69247C', 'blue', '#850F8D'],
-    stroke2: ['red', 'aqua', 'aqua'],
-    stroke3: ['#69247C', 'blue', '#850F8D'],
+    violet: {
+    stroke1: ['#8A2BE2'],
+    stroke2: ['aqua'],
+    stroke3: ['#8A2BE2']
   },
   green: {
-    stroke1: ['red', 'blue', '#06D001'],
-    stroke2: ['red', 'aqua', 'aqua'],
-    stroke3: ['red', 'violet', '#06D001'],
+    stroke1: ['#00ff00'],
+    stroke2: ['aqua'],
+    stroke3: ['#00ff00']
   },
 };
 
@@ -51,27 +51,122 @@ const Game = () => {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [activeTimerDuration, setActiveTimerDuration] = useState(null);
   const [modalColor, setModalColor] = useState('white');
   const [selectedColors, setSelectedColors] = useState('');
   const [sortedData, setSortedData] = useState([]);
   const [selectedRing, setSelectedRing] = useState({});
   const [metaData, setMetaData] = useState({});
 
-  const handleTimerEnd = () => {
-    setShowOverlay(false);
-    dispatch({
-      type: 'GENERATE_RESULT',
-      payload: Math.random() < 0.5 ? 'red' : 'green',
-    });
+  const [selectedDuration, setSelectedDuration] = useState(30);
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const [activeOverlays, setActiveOverlays] = useState({});
+  const [overlayCountdowns, setOverlayCountdowns] = useState({});
+  const [selectedTimer, setSelectedTimer] = useState(30);
+  const [isBettingTime, setIsBettingTime] = useState(true);
+  const [showGameOverlay, setShowGameOverlay] = useState(false);
+  const [timerRemaining, setTimerRemaining] = useState(0);
+
+  const handleTimerEnd = (duration) => {
     dispatch({
       type: 'DISTRIBUTE_WINNINGS',
-      payload: {result: state.results[0], multiplier: 1.8},
+      payload: {
+        result: state.results[0],
+        multiplier: 1.8
+      }
     });
+    
+    setTimerRemaining(0);
+    setActiveOverlays(prev => ({
+      ...prev,
+      [duration]: false
+    }));
+    setOverlayCountdowns(prev => ({
+      ...prev,
+      [duration]: 0
+    }));
+    setShowGameOverlay(false);
+    setIsBettingTime(true);
+    
+    setTimeout(() => {
+      if (duration === selectedTimer) {
+        setTimerRemaining(selectedTimer);
+        setIsBettingTime(true);
+      }
+    }, 1000);
   };
 
-  const handleFiveSecondsRemaining = () => {
-    setShowOverlay(true);
+  const handleTimerTick = (remaining, duration) => {
+    if (duration === selectedTimer) {
+      setTimerRemaining(remaining);
+    }
+    if (remaining <= 5000 && remaining > 0) {
+      setOverlayCountdowns(prev => ({
+        ...prev,
+        [duration]: Math.ceil(remaining / 1000)
+      }));
+    }
   };
+
+  const handleDurationChange = (durationMs) => {
+    const durationSeconds = durationMs / 1000;
+    setSelectedDuration(durationSeconds);
+    setSelectedTimer(durationSeconds);
+    setIsTimerRunning(true);
+    setIsBettingTime(true);
+    setShowGameOverlay(false);
+    setActiveOverlays({});
+  };
+
+  const handleFiveSecondsRemaining = (duration) => {
+    setActiveOverlays(prev => ({
+      ...prev,
+      [duration]: true
+    }));
+    setShowGameOverlay(true);
+    setOverlayCountdowns(prev => ({
+      ...prev,
+      [duration]: 5
+    }));
+  };
+
+  const handleBettingTimeChange = (isBetting, duration) => {
+    if (duration === selectedTimer) {
+      setIsBettingTime(isBetting);
+    }
+    if (!isBetting) {
+      setActiveOverlays(prev => ({
+        ...prev,
+        [duration]: true
+      }));
+      setShowGameOverlay(true);
+    }
+  };
+
+  useEffect(() => {
+    const timers = Object.keys(activeOverlays).filter(duration => activeOverlays[duration]);
+    if (timers.length > 0) {
+      const timer = setInterval(() => {
+        setOverlayCountdowns(prev => {
+          const newCountdowns = {...prev};
+          timers.forEach(duration => {
+            if (newCountdowns[duration] <= 1) {
+              setActiveOverlays(prev => ({
+                ...prev,
+                [duration]: false
+              }));
+              newCountdowns[duration] = 5;
+              handleTimerEnd(parseInt(duration));
+            } else {
+              newCountdowns[duration] -= 1;
+            }
+          });
+          return newCountdowns;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [activeOverlays]);
 
   const handlePress = currentRingData => {
     const currentRingColor = ringsColors[currentRingData.colorName];
@@ -132,34 +227,58 @@ const Game = () => {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Timer onFiveSecondsRemaining={handleFiveSecondsRemaining} />
+        <Timer 
+          initialDuration={selectedDuration * 1000}
+          remainingTime={selectedDuration * 1000}
+          isRunning={isTimerRunning}
+          onTimerComplete={handleTimerEnd}
+          onFiveSecondsRemaining={handleFiveSecondsRemaining}
+          onDurationChange={handleDurationChange}
+          onBettingTimeChange={handleBettingTimeChange}
+          onTimerTick={handleTimerTick}
+        />
         <View>
-          {showOverlay && <TimerOverlay onTimerEnd={handleTimerEnd} />}
+          {Object.entries(activeOverlays).map(([duration, isActive]) => 
+            isActive && (
+              <TimerOverlay 
+                key={duration}
+                onTimerEnd={() => handleTimerEnd(parseInt(duration))} 
+                duration={parseInt(duration)}
+                countdown={overlayCountdowns[duration] || 5}
+              />
+            )
+          )}
           <View style={styles.gameSection}>
-            <View style={styles.ringsRow}>
-              {sortedData.map((ringsData, index) => (
-                <TouchableOpacity
-                  onPress={() => handlePress(ringsData)}
-                  activeOpacity={0.5}
-                  key={index}
-                  style={styles.ringItem}>
-                  <Rings ringsColors={ringsColors[ringsData.colorName]} />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Number
-              isModalVisible={isModalVisible}
-              setIsModalVisible={handleNumberPress}
-              colors={selectedColors}
-            />
-
-            <BigSmallMini
-              setIsModalVisible={setIsModalVisible}
-              colors={selectedColors}
-              sizesHandlePost={sizesHandlePost}
-              setMetaData={setMetaData}
-            />
+            {isBettingTime ? (
+              <>
+                <View style={styles.ringsRow}>
+                  {sortedData.map((ringsData, index) => (
+                    <TouchableOpacity
+                      onPress={() => handlePress(ringsData)}
+                      activeOpacity={0.5}
+                      key={index}
+                      style={styles.ringItem}>
+                      <Rings ringsColors={ringsColors[ringsData.colorName]} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Number
+                  isModalVisible={isModalVisible}
+                  setIsModalVisible={handleNumberPress}
+                  colors={selectedColors}
+                />
+                <BigSmallMini
+                  setIsModalVisible={setIsModalVisible}
+                  colors={selectedColors}
+                  sizesHandlePost={sizesHandlePost}
+                  setMetaData={setMetaData}
+                />
+              </>
+            ) : !showGameOverlay && (
+              <View style={styles.bettingClosed}>
+                <Text style={styles.bettingClosedText}>Betting Closed</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -190,21 +309,26 @@ const Game = () => {
   );
 };
 
-const TimerOverlay = ({onTimerEnd}) => {
-  const [seconds, setSeconds] = useState(5);
-
-  useEffect(() => {
-    if (seconds <= 0) {
-      onTimerEnd();
-      return;
+const TimerOverlay = ({onTimerEnd, duration, countdown}) => {
+  const getTimerLabel = () => {
+    switch(duration) {
+      case 30:
+        return '30 seconds';
+      case 60:
+        return '1 minute';
+      case 180:
+        return '3 minutes';
+      case 300:
+        return '5 minutes';
+      default:
+        return '';
     }
-    const timer = setTimeout(() => setSeconds(seconds - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [seconds, onTimerEnd]);
+  };
 
   return (
     <View style={styles.overlay}>
-      <Text style={styles.timerText}>{seconds}s</Text>
+      <Text style={styles.timerLabel}>{getTimerLabel()} Timer</Text>
+      <Text style={styles.timerText}>{countdown}s</Text>
     </View>
   );
 };
@@ -227,16 +351,25 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
-    zIndex: 10,
+    zIndex: 1000,
+  },
+  timerLabel: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   timerText: {
     color: 'white',
-    fontSize: 32,
+    fontSize: 48,
     fontWeight: 'bold',
   },
   buttonRow: {
@@ -260,6 +393,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 10,
+  },
+  bettingClosed: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bettingClosedText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
 

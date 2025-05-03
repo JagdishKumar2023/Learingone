@@ -2,8 +2,11 @@ import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import {useNavigation} from '@react-navigation/native';
 
-const WalletCard = ({balance, onDeposit, onWithdraw}) => {
+const WalletCard = ({balance}) => {
+  const navigation = useNavigation();
+
   return (
     <LinearGradient
       colors={['#ff8c00', '#1f1f1f']}
@@ -11,11 +14,15 @@ const WalletCard = ({balance, onDeposit, onWithdraw}) => {
       <Text style={styles.balanceLabel}>Wallet Balance</Text>
       <Text style={styles.balanceAmount}>₹ {balance}</Text>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.depositButton} onPress={onDeposit}>
+        <TouchableOpacity
+          style={styles.depositButton}
+          onPress={() => navigation.navigate('Deposit')}>
           <Icon name="arrow-down" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.buttonText}>Deposit</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.withdrawButton} onPress={onWithdraw}>
+        <TouchableOpacity
+          style={styles.withdrawButton}
+          onPress={() => navigation.navigate('Withdraw')}>
           <Icon name="arrow-up" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.buttonText}>Withdraw</Text>
         </TouchableOpacity>

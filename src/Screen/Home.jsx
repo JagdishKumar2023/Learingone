@@ -33,17 +33,17 @@ const Home = () => {
         Animated.timing(textAnim, {
           toValue: 1,
           duration: 2500,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
         Animated.timing(textAnim, {
           toValue: 2,
           duration: 2500,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
         Animated.timing(textAnim, {
           toValue: 3,
           duration: 2500,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ]),
     ).start();

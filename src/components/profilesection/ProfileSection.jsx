@@ -51,7 +51,7 @@ export default ProfileSection;
 
 const styles = StyleSheet.create({
   optionsContainer: {
-    paddingVertical: height * 0.02, // Keeps spacing consistent
+    paddingVertical: height * 0.02,
     paddingHorizontal: width * 0.01,
   },
   option: {

@@ -56,13 +56,13 @@ function TabNavigator() {
               case 'Home':
                 iconName = 'home';
                 break;
-              case 'cropto':
+              case 'Cropto':
                 iconName = 'bitcoin';
                 break;
               case 'game':
                 iconName = 'gamepad-variant';
                 break;
-              case 'profile':
+              case 'Profile':
                 iconName = 'account';
                 break;
               default:
@@ -79,9 +79,9 @@ function TabNavigator() {
           headerShown: false,
         })}>
         <Tab.Screen name="Home" component={Home} />
-        <Tab.Screen name="cropto" component={Crypto} />
+        <Tab.Screen name="Cropto" component={Crypto} />
         <Tab.Screen name="game" component={Game} />
-        <Tab.Screen name="profile" component={About} />
+        <Tab.Screen name="Profile" component={About} />
       </Tab.Navigator>
     </View>
   );
@@ -118,6 +118,8 @@ function MyTabs() {
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen name="UpiPayment" component={UpiPayment} />
+      <Stack.Screen name="Deposit" component={UpiPayment} />
+      <Stack.Screen name="Withdraw" component={UpiPayment} />
     </Stack.Navigator>
   );
 }

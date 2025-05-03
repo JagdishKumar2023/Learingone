@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,10 +6,16 @@ import {
   TouchableOpacity,
   Image,
   Modal,
+  Animated,
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useNavigation} from '@react-navigation/native';
 
 const Ekyc = () => {
+  const navigation = useNavigation();
+  const arrowAnimation = useRef(new Animated.Value(1)).current;
+  const arrowRotateAnimation = useRef(new Animated.Value(0)).current;
   const [verificationStatus, setVerificationStatus] = useState({
     photo: null,
     aadhaar: null,
@@ -82,9 +88,56 @@ const Ekyc = () => {
     }
   };
 
+  const handleBackPress = () => {
+    // Enhanced animation for the arrow
+    Animated.parallel([
+      // Scale animation
+      Animated.sequence([
+        Animated.timing(arrowAnimation, {
+          toValue: 0.7,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(arrowAnimation, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]),
+      // Rotation animation
+      Animated.sequence([
+        Animated.timing(arrowRotateAnimation, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(arrowRotateAnimation, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start(() => {
+      navigation.goBack();
+    });
+  };
+
+  // Interpolate rotation
+  const rotateInterpolate = arrowRotateAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '-15deg'],
+  });
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>eKYC Verification</Text>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={28} color="#FFA500" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>eKYC Verification</Text>
+      </View>
 
       {options.map(option => (
         <TouchableOpacity
@@ -165,10 +218,18 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 10,
+  },
+  headerText: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#FFA500',
-    marginBottom: 20,
   },
   card: {
     flexDirection: 'row',
