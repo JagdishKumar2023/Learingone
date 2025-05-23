@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -45,6 +45,7 @@ const ringsColors = {
 };
 
 const Game = () => {
+  const recentlyCompletedTimers = useRef({});
   const {data: res, isError} = useGetColorDetails();
   const {mutate: addSizeDetails} = useAddSizeDetails();
   const {state, dispatch} = useGame();
@@ -67,6 +68,45 @@ const Game = () => {
   const [showGameOverlay, setShowGameOverlay] = useState(false);
   const [timerRemaining, setTimerRemaining] = useState(0);
 
+  // Initialize game without showing overlay
+  useEffect(() => {
+    // Initialize the game with no overlay
+    setShowGameOverlay(false);
+    setActiveOverlays({});
+  }, []);
+
+  useEffect(() => {
+    const clearOverlayTimer = setTimeout(() => {
+      if (Object.keys(activeOverlays).some(key => activeOverlays[key])) {
+        setActiveOverlays({});
+        setShowGameOverlay(false);
+      }
+    }, 1000);
+    
+    return () => clearTimeout(clearOverlayTimer);
+  }, [activeOverlays]);
+
+  // Force clear overlay on first render and after every timer reset
+  useEffect(() => {
+    const forceResetOverlay = () => {
+      setShowGameOverlay(false);
+      setActiveOverlays({});
+    };
+    
+    // Clear overlay on component mount
+    forceResetOverlay();
+    
+    // Also set up a timer to check and clear overlay if needed
+    const intervalTimer = setInterval(() => {
+      // If there's an active overlay but not in last 5 seconds of any timer
+      if (showGameOverlay && timerRemaining > 5000) {
+        forceResetOverlay();
+      }
+    }, 500);
+    
+    return () => clearInterval(intervalTimer);
+  }, []);
+
   const handleTimerEnd = (duration) => {
     dispatch({
       type: 'DISTRIBUTE_WINNINGS',
@@ -77,23 +117,31 @@ const Game = () => {
     });
     
     setTimerRemaining(0);
-    setActiveOverlays(prev => ({
-      ...prev,
-      [duration]: false
-    }));
-    setOverlayCountdowns(prev => ({
-      ...prev,
-      [duration]: 0
-    }));
+    
+    // IMPORTANT: Immediately force reset ALL overlay states
+    setActiveOverlays({});
     setShowGameOverlay(false);
+    setOverlayCountdowns({});
+    
+    // Mark this timer as recently completed
+    recentlyCompletedTimers.current[duration] = true;
+    
+    // IMPORTANT: Reset betting time to true
     setIsBettingTime(true);
     
+    // Clear recently completed flag after a delay
+    setTimeout(() => {
+      recentlyCompletedTimers.current[duration] = false;
+    }, 3000);
+    
+    // Shorter delay before starting next round
     setTimeout(() => {
       if (duration === selectedTimer) {
         setTimerRemaining(selectedTimer);
+        // Double-check that betting time is open
         setIsBettingTime(true);
       }
-    }, 1000);
+    }, 800);
   };
 
   const handleTimerTick = (remaining, duration) => {
@@ -109,37 +157,88 @@ const Game = () => {
   };
 
   const handleDurationChange = (durationMs) => {
-    const durationSeconds = durationMs / 1000;
-    setSelectedDuration(durationSeconds);
-    setSelectedTimer(durationSeconds);
-    setIsTimerRunning(true);
-    setIsBettingTime(true);
-    setShowGameOverlay(false);
-    setActiveOverlays({});
+    // Use our new handleTimerSelection function for consistency
+    handleTimerSelection(durationMs);
   };
 
   const handleFiveSecondsRemaining = (duration) => {
+    // Handle special signal for clearing overlay (negative duration)
+    if (duration < 0) {
+      const actualDuration = Math.abs(duration);
+      setActiveOverlays(prev => ({
+        ...prev,
+        [actualDuration]: false
+      }));
+      // Only clear game overlay if it's the current selected timer
+      if (actualDuration === selectedTimer) {
+        setShowGameOverlay(false);
+      }
+      return;
+    }
+    
+    // NEVER show overlay if the timer was recently completed
+    if (recentlyCompletedTimers.current[duration]) {
+      return;
+    }
+    
+    console.log(`Game: Last 2 seconds for timer: ${duration}s, selected timer: ${selectedTimer}s`);
+    
+    // Set overlay for ALL timers, but only show for selected timer
     setActiveOverlays(prev => ({
       ...prev,
       [duration]: true
     }));
-    setShowGameOverlay(true);
+    
     setOverlayCountdowns(prev => ({
       ...prev,
-      [duration]: 5
+      [duration]: 2
     }));
+    
+    // Only show the game overlay if this is the selected timer
+    if (duration === selectedTimer) {
+      setShowGameOverlay(true);
+    }
+  };
+
+  // Add function to handle timer selection with proper overlay management
+  const handleTimerSelection = (durationMs) => {
+    const durationSeconds = durationMs / 1000;
+    
+    // Hide any overlay from previously selected timer
+    if (selectedTimer && activeOverlays[selectedTimer]) {
+      setActiveOverlays(prev => ({
+        ...prev,
+        [selectedTimer]: false
+      }));
+    }
+
+    // Update selected timer without resetting timers
+    setSelectedDuration(durationSeconds);
+    setSelectedTimer(durationSeconds);
+    
+    // Don't reset timers - just update UI state
+    // setTimerKey(Date.now()); - Remove this line to prevent timer resets
+    
+    // Only update overlay state for the selected timer
+    setShowGameOverlay(!!activeOverlays[durationSeconds]);
+    
+    console.log(`Timer selection changed to ${durationSeconds}s`);
   };
 
   const handleBettingTimeChange = (isBetting, duration) => {
+    // Only update betting state if this is for the selected timer
     if (duration === selectedTimer) {
+      console.log("Betting time changed to:", isBetting ? "open" : "closed");
       setIsBettingTime(isBetting);
     }
-    if (!isBetting) {
+    
+    // When betting opens, make sure overlay is hidden
+    if (isBetting && duration === selectedTimer) {
+      setShowGameOverlay(false);
       setActiveOverlays(prev => ({
         ...prev,
-        [duration]: true
+        [duration]: false
       }));
-      setShowGameOverlay(true);
     }
   };
 
@@ -155,7 +254,7 @@ const Game = () => {
                 ...prev,
                 [duration]: false
               }));
-              newCountdowns[duration] = 5;
+              newCountdowns[duration] = 2;
               handleTimerEnd(parseInt(duration));
             } else {
               newCountdowns[duration] -= 1;
@@ -167,6 +266,29 @@ const Game = () => {
       return () => clearInterval(timer);
     }
   }, [activeOverlays]);
+
+  useEffect(() => {
+    // Reset overlay states when selected timer changes
+    setActiveOverlays({});
+    setShowGameOverlay(false);
+    setIsBettingTime(true);
+    
+    // Reset countdown timers
+    setOverlayCountdowns({});
+  }, [selectedTimer]);
+
+  // Add effect to sync UI when active overlays change
+  useEffect(() => {
+    // Check if the selected timer has an active overlay
+    if (activeOverlays[selectedTimer]) {
+      setShowGameOverlay(true);
+    } else {
+      // Only hide if there's no active overlay for selected timer
+      setShowGameOverlay(false);
+    }
+    
+    console.log("Active overlays updated:", activeOverlays);
+  }, [activeOverlays, selectedTimer]);
 
   const handlePress = currentRingData => {
     const currentRingColor = ringsColors[currentRingData.colorName];
@@ -227,58 +349,50 @@ const Game = () => {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Timer 
-          initialDuration={selectedDuration * 1000}
-          remainingTime={selectedDuration * 1000}
-          isRunning={isTimerRunning}
-          onTimerComplete={handleTimerEnd}
-          onFiveSecondsRemaining={handleFiveSecondsRemaining}
-          onDurationChange={handleDurationChange}
-          onBettingTimeChange={handleBettingTimeChange}
-          onTimerTick={handleTimerTick}
-        />
-        <View>
-          {Object.entries(activeOverlays).map(([duration, isActive]) => 
-            isActive && (
-              <TimerOverlay 
-                key={duration}
-                onTimerEnd={() => handleTimerEnd(parseInt(duration))} 
-                duration={parseInt(duration)}
-                countdown={overlayCountdowns[duration] || 5}
-              />
-            )
+        <View style={styles.timerContainer}>
+          <Timer 
+            initialDuration={selectedDuration * 1000}
+            remainingTime={selectedDuration * 1000}
+            isRunning={isTimerRunning}
+            onTimerComplete={handleTimerEnd}
+            onFiveSecondsRemaining={handleFiveSecondsRemaining}
+            onDurationChange={handleDurationChange}
+            onBettingTimeChange={handleBettingTimeChange}
+            onTimerTick={handleTimerTick}
+          />
+        </View>
+        <View style={styles.gameContainer}>
+          {showGameOverlay && activeOverlays[selectedTimer] && (
+            <TimerOverlay 
+              key={`overlay-${selectedTimer}`}
+              onTimerEnd={() => handleTimerEnd(selectedTimer)} 
+              duration={selectedTimer}
+              countdown={overlayCountdowns[selectedTimer] || 2}
+            />
           )}
           <View style={styles.gameSection}>
-            {isBettingTime ? (
-              <>
-                <View style={styles.ringsRow}>
-                  {sortedData.map((ringsData, index) => (
-                    <TouchableOpacity
-                      onPress={() => handlePress(ringsData)}
-                      activeOpacity={0.5}
-                      key={index}
-                      style={styles.ringItem}>
-                      <Rings ringsColors={ringsColors[ringsData.colorName]} />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <Number
-                  isModalVisible={isModalVisible}
-                  setIsModalVisible={handleNumberPress}
-                  colors={selectedColors}
-                />
-                <BigSmallMini
-                  setIsModalVisible={setIsModalVisible}
-                  colors={selectedColors}
-                  sizesHandlePost={sizesHandlePost}
-                  setMetaData={setMetaData}
-                />
-              </>
-            ) : !showGameOverlay && (
-              <View style={styles.bettingClosed}>
-                <Text style={styles.bettingClosedText}>Betting Closed</Text>
-              </View>
-            )}
+            <View style={styles.ringsRow}>
+              {sortedData.map((ringsData, index) => (
+                <TouchableOpacity
+                  onPress={() => handlePress(ringsData)}
+                  activeOpacity={0.5}
+                  key={index}
+                  style={styles.ringItem}>
+                  <Rings ringsColors={ringsColors[ringsData.colorName]} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Number
+              isModalVisible={isModalVisible}
+              setIsModalVisible={handleNumberPress}
+              colors={selectedColors}
+            />
+            <BigSmallMini
+              setIsModalVisible={setIsModalVisible}
+              colors={selectedColors}
+              sizesHandlePost={sizesHandlePost}
+              setMetaData={setMetaData}
+            />
           </View>
         </View>
 
@@ -343,12 +457,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     flexGrow: 1,
   },
+  gameContainer: {
+    position: 'relative',
+    marginVertical: 10,
+  },
   gameSection: {
     borderWidth: 3,
     borderColor: 'white',
     borderRadius: 8,
     padding: 12,
-    marginTop: 10,
+    minHeight: 350,
   },
   overlay: {
     position: 'absolute',
@@ -398,11 +516,15 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 250,
   },
   bettingClosedText: {
     color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
+  },
+  timerContainer: {
+    marginBottom: 5,
   },
 });
 

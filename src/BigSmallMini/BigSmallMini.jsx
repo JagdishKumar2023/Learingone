@@ -67,9 +67,9 @@ const BigSmallMini = ({setIsModalVisible, sizesHandlePost, setMetaData}) => {
 
   const renderItem = ({item}) => {
     let strokeColor = '#27ae60';
-    if (item.label === 'Big') strokeColor = '#DE3163';
+    if (item.label === 'Big') strokeColor = '#ff0000';
     else if (item.label === 'Mini') strokeColor = '#FFB200';
-    else if (item.label === 'Small') strokeColor = '#06D001';
+    else if (item.label === 'Small') strokeColor = '#00ff00';
     else strokeColor = item.color;
 
     return (
