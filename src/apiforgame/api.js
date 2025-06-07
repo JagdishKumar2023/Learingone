@@ -3,12 +3,12 @@ import Config from 'react-native-config';
 // import { getAuthToken } from './useBackendApi'; // Uncomment when using dynamic tokens
 
 // ✅ Base URL setup
-const API_URL = Config.BASE_URL || 'http://192.168.0.123:5000/api/v1';
+const API_URL = Config.BASE_URL || 'http://192.168.0.128:5000/api/v1';
 console.log('API:', API_URL);
 
 // ✅ New Bearer Token
 const tempToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyV2l0aG91dFRva2VuIjp7InRvdGFsRGVwb3NpdCI6MCwidG90YWxXaXRoZHJhd2FsIjowLCJfaWQiOiI2N2QwN2Y0YjM5ZmMxMDA1ODdlNjI1MTciLCJmdWxsTmFtZSI6InZpcmF0IiwiZW1haWwiOiJ2aXJhdEBnbWFpbC5jb20iLCJwaG9uZU51bWJlciI6IjkwOTA5MDkwOTAiLCJiYWxhbmNlIjoxMTEsImlzU3VwZXJBZG1pbiI6dHJ1ZSwiaXNCbG9ja2VkIjpmYWxzZSwiY3JlYXRlZEF0IjoiMjAyNS0wMy0xMVQxODoyMjowMy45MTNaIiwidXBkYXRlZEF0IjoiMjAyNS0wNS0xM1QxNjo1OTozMi45MzZaIiwiX192IjowLCJpc0RvY3VtZW50c1ZlcmlmaWVkIjp0cnVlfSwiaWF0IjoxNzQ4MDE5OTA5LCJleHAiOjE3NDg4ODM5MDl9.RHY7yqKtzPm-DrSsdMExTLInb3rCJOclGojWP3EVCDA';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyV2l0aG91dFRva2VuIjp7InRvdGFsRGVwb3NpdCI6MCwidG90YWxXaXRoZHJhd2FsIjowLCJfaWQiOiI2N2QwN2Y0YjM5ZmMxMDA1ODdlNjI1MTciLCJmdWxsTmFtZSI6InZpcmF0IiwiZW1haWwiOiJ2aXJhdEBnbWFpbC5jb20iLCJwaG9uZU51bWJlciI6IjkwOTA5MDkwOTAiLCJiYWxhbmNlIjoxMTEsImlzU3VwZXJBZG1pbiI6dHJ1ZSwiaXNCbG9ja2VkIjpmYWxzZSwiY3JlYXRlZEF0IjoiMjAyNS0wMy0xMVQxODoyMjowMy45MTNaIiwidXBkYXRlZEF0IjoiMjAyNS0wNS0yM1QxNzowNTowOS4wMzZaIiwiX192IjowLCJpc0RvY3VtZW50c1ZlcmlmaWVkIjp0cnVlfSwiaWF0IjoxNzQ5MDU0MjIzLCJleHAiOjE3NDk5MTgyMjN9._jH9bBQTcX7ZQlornoMQmkWcX2lmbQbsObQJbGGW6Zo';
 
 // ✅ Axios instance
 const api = axios.create({

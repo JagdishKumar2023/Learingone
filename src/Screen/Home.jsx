@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  StatusBar,
+  ImageBackground,
+  Image,
+  Platform,
+  Easing,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {useNavigation} from '@react-navigation/native';
@@ -17,177 +22,276 @@ import FeedBack from './../components/FeedBack/FeedBack';
 import Footer from '../components/footer/Footer';
 import CustomerReview from '../components/customerreview/CustomerReview';
 import Accordion from '../components/accordion/Accordion';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const {width, height} = Dimensions.get('window');
 
 const Home = () => {
   const navigation = useNavigation();
   const textAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const translateAnim = useRef(new Animated.Value(0)).current;
-
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  
+  // Check if user is signed in
   useEffect(() => {
-    Animated.loop(
+    const checkUserAuth = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          const parsedData = JSON.parse(userData);
+          setIsSignedIn(true);
+          setUsername(parsedData.username || 'Trader');
+        } else {
+          setIsSignedIn(false);
+        }
+      } catch (error) {
+        console.log('Error checking auth status:', error);
+        setIsSignedIn(false);
+      }
+    };
+    
+    checkUserAuth();
+  }, []);
+  
+  // Memoize the animation to prevent recreation on re-renders
+  const startAnimations = useCallback(() => {
+    // Simple fade-in with native driver for better performance
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+    
+    // Simpler animation sequence with better timing for smooth transitions
+    const textAnimation = Animated.loop(
       Animated.sequence([
+        // Show text 1
+        Animated.timing(textAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textAnim, {
+          toValue: 0,
+          duration: 2000, // Stay visible
+          useNativeDriver: true,
+        }),
+        // Transition to text 2
         Animated.timing(textAnim, {
           toValue: 1,
-          duration: 2500,
-          useNativeDriver: false,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textAnim, {
+          toValue: 1,
+          duration: 2000, // Stay visible
+          useNativeDriver: true,
+        }),
+        // Transition to text 3
+        Animated.timing(textAnim, {
+          toValue: 2,
+          duration: 500,
+          useNativeDriver: true,
         }),
         Animated.timing(textAnim, {
           toValue: 2,
-          duration: 2500,
-          useNativeDriver: false,
+          duration: 2000, // Stay visible
+          useNativeDriver: true,
         }),
-        Animated.timing(textAnim, {
-          toValue: 3,
-          duration: 2500,
-          useNativeDriver: false,
-        }),
-      ]),
-    ).start();
+      ])
+    );
+    
+    textAnimation.start();
+    
+    return () => {
+      textAnimation.stop();
+    };
+  }, []);
+  
+  useEffect(() => {
+    startAnimations();
+  }, [startAnimations]);
+
+  // Text display conditions based on animation value
+  const text1Opacity = useRef(new Animated.Value(1)).current;
+  const text2Opacity = useRef(new Animated.Value(0)).current;
+  const text3Opacity = useRef(new Animated.Value(0)).current;
+  
+  // Update text opacities based on textAnim value
+  useEffect(() => {
+    const listener = textAnim.addListener(({value}) => {
+      if (value < 0.5) {
+        text1Opacity.setValue(1);
+        text2Opacity.setValue(0);
+        text3Opacity.setValue(0);
+      } else if (value < 1.5) {
+        text1Opacity.setValue(0);
+        text2Opacity.setValue(1);
+        text3Opacity.setValue(0);
+      } else {
+        text1Opacity.setValue(0);
+        text2Opacity.setValue(0);
+        text3Opacity.setValue(1);
+      }
+    });
+    
+    return () => textAnim.removeListener(listener);
   }, []);
 
-  const startCircleMotion = () => {
-    Animated.parallel([
-      Animated.sequence([
-        Animated.timing(scaleAnim, {
-          toValue: 1.3,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      rotateAnim.setValue(0);
-      translateAnim.setValue(0);
-      navigation.navigate('game'); // Redirect to Game screen
-    });
-  };
-
-  const rotateInterpolate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const translateInterpolate = translateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 50], // Moves in a circular path
-  });
-
-  const textOpacity = textAnim.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: [1, 0, 0, 0],
-  });
-  const text2Opacity = textAnim.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: [0, 1, 0, 0],
-  });
-  const text3Opacity = textAnim.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: [0, 0, 1, 0],
-  });
-
   return (
-    <ScrollView style={styles.scrollContainer}>
-      <LinearGradient
-        colors={['#1a1a1a', '#000']}
-        style={styles.gradientContainer}>
-        <View style={styles.content}>
-          <View style={styles.textContainer}>
-            <Text style={styles.heading}>
-              Innovative Platform for Smart Investment
-            </Text>
-            <Text style={styles.subHeading}>No Demo Account Available</Text>
-            <Text style={styles.attractiveLine}>
-              Start investing with confidence Real profits, Real growth.
-            </Text>
-            <View style={styles.overlayText}>
-              <Animated.Text style={[styles.subText, {opacity: textOpacity}]}>
-                Welcome Professional Trader
-              </Animated.Text>
-              <Animated.Text style={[styles.subText, {opacity: text2Opacity}]}>
-                Welcome Investors
-              </Animated.Text>
-              <Animated.Text style={[styles.subText, {opacity: text3Opacity}]}>
-                Guaranteed Profit is waiting for you
-              </Animated.Text>
-            </View>
-            <TouchableOpacity
-              style={styles.signUpButton}
-              onPress={() => navigation.navigate('SignUp')}>
-              <Text style={styles.signUpText}>Get Started</Text>
-            </TouchableOpacity>{' '}
-          </View>
+    <View style={styles.container}>
+      <StatusBar backgroundColor="transparent" translucent={true} />
+      
+      <ScrollView 
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContentContainer}>
+        
+        {/* Hero Section with optimized animations */}
+        <Animated.View style={[styles.fadeContainer, {opacity: fadeAnim}]}>
+          <LinearGradient
+            colors={['#1a1a1a', '#121212', '#000']}
+            style={styles.gradientContainer}>
+            <View style={styles.content}>
+              <View style={styles.textContainer}>
+                <Text style={styles.heading}>
+                  Innovative Platform for Smart Investment
+                </Text>
+                <Text style={styles.subHeading}>No Demo Account Available</Text>
+                <Text style={styles.attractiveLine}>
+                  Start investing with confidence Real profits, Real growth.
+                </Text>
+                <View style={styles.overlayText}>
+                  <Animated.Text style={[styles.subText, {opacity: text1Opacity}]}>
+                    Welcome Professional Trader
+                  </Animated.Text>
+                  <Animated.Text style={[styles.subText, {opacity: text2Opacity}]}>
+                    Welcome Investors
+                  </Animated.Text>
+                  <Animated.Text style={[styles.subText, {opacity: text3Opacity}]}>
+                    Guaranteed Profit is waiting for you
+                  </Animated.Text>
+                </View>
+                
+                {isSignedIn ? (
+                  <View style={styles.welcomeContainer}>
+                    <LinearGradient
+                      colors={['#f7931a', '#FF8C00']}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 0}}
+                      style={styles.welcomeGradient}>
+                      <Text style={styles.welcomeText}>
+                        Hi Professional Trader {username}
+                      </Text>
+                      <Icon name="verified-user" size={24} color="#FFFFFF" style={{marginLeft: 8}} />
+                    </LinearGradient>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.signUpButton}
+                    onPress={() => navigation.navigate('SignUp')}>
+                    <LinearGradient
+                      colors={['#4CC9FE', '#3B9ED4']}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 0}}
+                      style={styles.buttonGradient}>
+                      <Text style={styles.signUpText}>Get Started</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )}
+              </View>
 
-          {/* Circular Motion + Navigation */}
-          <TouchableOpacity onPress={startCircleMotion}>
-            <Animated.View
-              style={[
-                styles.animatedCircle,
-                {
-                  transform: [
-                    {scale: scaleAnim},
-                    {rotate: rotateInterpolate},
-                    {translateX: translateInterpolate},
-                    {translateY: translateInterpolate},
-                  ],
-                },
-              ]}>
-              <Text style={styles.circleText}>Invest Now</Text>
-            </Animated.View>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-      <Card />
-      <Potfolio />
-      <Info />
-      <CustomerReview />
-      <Accordion />
-      <FeedBack />
-      <Footer />
-    </ScrollView>
+              {/* COMPLETELY RECTANGULAR BUTTON WITH NO ANIMATIONS */}
+              <View style={styles.investButtonWrapper}>
+                <TouchableOpacity 
+                  style={styles.rectangularButton}
+                  onPress={() => navigation.navigate('game')}>
+                  <View style={styles.buttonInner}>
+                    <Text style={styles.buttonText}>INVEST NOW</Text>
+                    <Icon name="arrow-forward" size={24} color="#FFFFFF" />
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.secureText}>100% Secure Investment</Text>
+              </View>
+            </View>
+          </LinearGradient>
+          
+          {/* Content Sections */}
+          <View style={styles.sectionContainer}>
+            <Card />
+          </View>
+          
+          <View style={styles.sectionContainer}>
+            <Potfolio />
+          </View>
+          
+          <LinearGradient
+            colors={['#1a1a1a', '#121212']}
+            style={styles.sectionContainer}>
+            <Info />
+          </LinearGradient>
+          
+          <View style={styles.sectionContainer}>
+            <CustomerReview />
+          </View>
+          
+          <LinearGradient
+            colors={['#121212', '#1a1a1a']}
+            style={styles.sectionContainer}>
+            <Accordion />
+          </LinearGradient>
+          
+          <View style={styles.sectionContainer}>
+            <FeedBack />
+          </View>
+          
+          <Footer />
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 };
 
 export default Home;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
   scrollContainer: {
     flex: 1,
     backgroundColor: '#000',
   },
+  fadeContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
   gradientContainer: {
     width: '100%',
-    minHeight: height * 0.7,
-    paddingVertical: height * 0.08,
-    paddingHorizontal: width * 0.08,
+    minHeight: hp('70%'),
+    paddingTop: Platform.OS === 'ios' ? hp('6%') : hp('8%'),
+    paddingBottom: hp('5%'),
+    paddingHorizontal: wp('5%'),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: hp('2%'),
     shadowColor: '#F7931A',
-    shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 10,
-    borderColor: 'orange',
-    borderWidth: 3,
-    borderRadius: 10,
+    shadowOffset: {width: 0, height: 5},
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
+    borderBottomColor: 'rgba(247, 147, 26, 0.3)',
+    borderBottomWidth: 2,
   },
   content: {
     justifyContent: 'center',
@@ -200,74 +304,144 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heading: {
-    color: 'orange',
-    fontSize: width * 0.08,
+    color: '#F7931A',
+    fontSize: wp('8%'),
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: hp('2%'),
+    textShadowColor: 'rgba(247, 147, 26, 0.5)',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 5,
   },
   subHeading: {
-    color: 'cyan',
-    fontSize: width * 0.06,
+    color: '#4CC9FE',
+    fontSize: wp('6%'),
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: hp('1.5%'),
+    textShadowColor: 'rgba(76, 201, 254, 0.5)',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 5,
   },
   attractiveLine: {
     color: 'gold',
-    fontSize: width * 0.05,
+    fontSize: wp('5%'),
     fontWeight: '500',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: hp('3%'),
   },
   overlayText: {
-    height: 100,
+    height: hp('10%'),
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 20,
-    color: 'cyan',
+    marginVertical: hp('2%'),
   },
   subText: {
-    color: 'cyan',
-    fontSize: width * 0.05,
+    color: '#4CC9FE',
+    fontSize: wp('5%'),
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: hp('1%'),
+    position: 'absolute',
+    textShadowColor: 'rgba(76, 201, 254, 0.5)',
+    textShadowOffset: {width: 0.5, height: 0.5},
+    textShadowRadius: 3,
   },
   signUpButton: {
-    backgroundColor: '#F7931A',
-    borderRadius: 25,
-    paddingVertical: 15,
-    paddingHorizontal: 50,
-    marginTop: 20,
-    shadowColor: '#F7931A',
-    shadowOffset: {width: 0, height: 5},
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    elevation: 8,
+    width: wp('50%'),
+    height: hp('6%'),
+    borderRadius: hp('3%'),
+    overflow: 'hidden',
+    marginTop: hp('2%'),
+    shadowColor: '#4CC9FE',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  buttonGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   signUpText: {
-    color: '#000',
-    fontSize: width * 0.05,
+    color: '#fff',
+    fontSize: wp('4.5%'),
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  animatedCircle: {
-    width: width * 0.4,
-    height: width * 0.4,
-    borderRadius: width * 0.2,
-    backgroundColor: 'orange',
-    marginTop: 30,
+  welcomeContainer: {
+    width: wp('80%'),
+    height: hp('6%'),
+    borderRadius: hp('1%'),
+    overflow: 'hidden',
+    marginTop: hp('2%'),
+    shadowColor: '#F7931A',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  welcomeGradient: {
+    flex: 1,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: 'orange',
-    shadowOffset: {width: 0, height: 5},
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 8,
+    paddingHorizontal: wp('4%'),
   },
-  circleText: {
-    color: '#fff',
-    fontSize: width * 0.06,
+  welcomeText: {
+    color: '#FFFFFF',
+    fontSize: wp('5%'),
     fontWeight: 'bold',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 2,
+  },
+  investButtonWrapper: {
+    width: '80%',
+    alignItems: 'center',
+    marginTop: hp('4%'),
+    marginBottom: hp('2%'),
+  },
+  rectangularButton: {
+    width: wp('90%'),
+    height: hp('7%'),
+    backgroundColor: '#F7931A',
+    borderRadius: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FF8C00',
+  },
+  buttonInner: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: wp('4.5%'),
+    fontWeight: '700',
+    marginRight: wp('2%'),
+    letterSpacing: 1,
+  },
+  secureText: {
+    color: '#AAA',
+    fontSize: wp('3%'),
+    marginTop: hp('0.5%'),
+  },
+  sectionContainer: {
+    marginBottom: hp('1.5%'),
+    paddingVertical: hp('1%'),
+    paddingHorizontal: wp('1.5%'),
+    borderRadius: 8,
+    marginHorizontal: wp('2.5%'),
+    shadowColor: '#F7931A',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 4,
+    backgroundColor: '#0d0d0d',
   },
 });

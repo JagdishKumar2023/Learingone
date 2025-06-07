@@ -240,7 +240,11 @@ export default function Timer({
       // Cleanup all timers when component unmounts
       Object.keys(timerRefs.current).forEach(key => {
         if (timerRefs.current[key]) {
-          clearInterval(timerRefs.current[key]);
+          if (typeof timerRefs.current[key] === 'number') {
+            clearTimeout(timerRefs.current[key]);
+          } else {
+            clearInterval(timerRefs.current[key]);
+          }
           timerRefs.current[key] = null;
         }
       });
@@ -289,70 +293,48 @@ export default function Timer({
     }
   };
 
-  // Update the last seconds handling to ensure it fires for all durations
+  // Simplified last seconds handling with no delay
   const handleLastFiveSeconds = (duration, remaining) => {
-    // NEVER show overlay during initialization, restart, or the first seconds of any timer
-    const elapsed = duration * 1000 - remaining;
-    const isJustStarted = elapsed < 2000; // First 2 seconds of the timer
-    const wasRecentlyRestarted = recentlyRestartedTimers.current[duration];
-    const hasJustCompletedCycle = justCompletedCycle.current[duration];
+    // Quick check if we're in the last 2 seconds range
+    const isInLastTwoSeconds = (remaining <= 2000 && remaining > 0);
+    const isCurrentlyShowing = lastFiveSecondsRefs.current[duration];
     
-    // Force disable overlay in several circumstances
-    if (initialRenderRef.current || 
-        isJustStarted || 
-        wasRecentlyRestarted || 
-        hasJustCompletedCycle || 
-        remaining === undefined ||
-        remaining >= (duration * 1000 - 2000) // First seconds based on remaining time check
-       ) {
-      // Force ensure no overlay during initialization or start
-      if (lastFiveSecondsRefs.current[duration]) {
-        lastFiveSecondsRefs.current[duration] = false;
-        if (duration === selectedTime) {
-          setLastFiveSeconds(false);
-        }
-        
-        // Always notify parent component to hide overlay
-        if (onFiveSecondsRemaining) {
-          // We send a special signal with negative duration to indicate clearing overlay
-          onFiveSecondsRemaining(-duration);
-        }
+    // Immediately show/hide overlay based on time remaining
+    if (isInLastTwoSeconds && !isCurrentlyShowing && !justCompletedCycle.current[duration]) {
+      // Show overlay immediately
+      lastFiveSecondsRefs.current[duration] = true;
+      
+      // Only update state if this is the selected timer
+      if (duration === selectedTime) {
+        setLastFiveSeconds(true);
       }
-      return;
-    }
-    
-    // Only trigger last seconds logic if within last 2 seconds range AND not in early timer phase
-    if (remaining <= 2000 && remaining > 0 && elapsed > 2000) {
-      if (!lastFiveSecondsRefs.current[duration]) {
-        // First time entering last seconds for this timer
-        lastFiveSecondsRefs.current[duration] = true;
-        
-        // Update visible last sec state only for selected timer
-        if (duration === selectedTime) {
-          setLastFiveSeconds(true);
-        }
-        
-        // IMPORTANT: Always call onFiveSecondsRemaining for all timers
-        // This ensures overlay shows for all timer durations
-        if (onFiveSecondsRemaining && typeof onFiveSecondsRemaining === 'function') {
-          console.log(`Last 2 seconds for timer: ${duration}s`);
-          onFiveSecondsRemaining(duration);
-        }
+      
+      // Notify parent component
+      if (onFiveSecondsRemaining) {
+        onFiveSecondsRemaining(duration);
       }
-    } else if (remaining > 2000) {
-      // Reset last seconds state when not in last seconds
-      if (lastFiveSecondsRefs.current[duration]) {
-        lastFiveSecondsRefs.current[duration] = false;
-        
-        if (duration === selectedTime) {
-          setLastFiveSeconds(false);
-        }
+    } 
+    else if (!isInLastTwoSeconds && isCurrentlyShowing) {
+      // Hide overlay immediately
+      lastFiveSecondsRefs.current[duration] = false;
+      
+      if (duration === selectedTime) {
+        setLastFiveSeconds(false);
+      }
+      
+      // Notify parent
+      if (onFiveSecondsRemaining) {
+        onFiveSecondsRemaining(-duration);
       }
     }
   };
 
   const startTimer = (duration) => {
-    if (timerRefs.current[duration]) return;
+    // Clear any existing timers first
+    if (timerRefs.current[duration]) {
+      clearTimeout(timerRefs.current[duration]);
+      timerRefs.current[duration] = null;
+    }
     
     // Reset overlay state when starting timer
     lastFiveSecondsRefs.current[duration] = false;
@@ -360,16 +342,16 @@ export default function Timer({
       setLastFiveSeconds(false);
     }
     
-    // Set "recently restarted" for a guaranteed time period to prevent overlay
+    // Very short protection against showing overlay immediately after restart
     recentlyRestartedTimers.current[duration] = true;
-    
-    // Clear the "recently restarted" flag after sufficient time
     setTimeout(() => {
       recentlyRestartedTimers.current[duration] = false;
-    }, 10000); // 10 seconds should be enough to cover the full timer init phase
+    }, 1000); // Reduced from 3000ms to 1000ms
     
-    startTimeRefs.current[duration] = Date.now();
-    remainingTimeRefs.current[duration] = duration * 1000;
+    // Calculate the absolute end time when this timer should complete
+    const startTime = Date.now();
+    const endTime = startTime + (duration * 1000);
+    startTimeRefs.current[duration] = startTime;
     
     // IMPORTANT: Reset betting time to true when timer starts
     bettingTimeRefs.current[duration] = true;
@@ -379,29 +361,30 @@ export default function Timer({
       onBettingTimeChange(true, duration);
     }
     
-    timerRefs.current[duration] = setInterval(() => {
-      const elapsed = Date.now() - startTimeRefs.current[duration];
-      const remaining = remainingTimeRefs.current[duration] - elapsed;
+    // Create a recursive self-adjusting timer function for accurate timing
+    const runTimer = () => {
+      // Calculate current remaining time
+      const now = Date.now();
+      const elapsedTime = now - startTime;
+      const remaining = (duration * 1000) - elapsedTime;
       
+      // Handle timer completion
       if (remaining <= 0) {
-        clearInterval(timerRefs.current[duration]);
-        timerRefs.current[duration] = null;
+        // Reset states
         lastFiveSecondsRefs.current[duration] = false;
         bettingTimeRefs.current[duration] = true;
         
-        // Mark this timer as recently restarted to prevent overlay
+        // Mark this timer as recently restarted
         recentlyRestartedTimers.current[duration] = true;
         justCompletedCycle.current[duration] = true;
         
-        // Clear the "recently completed" flag after a delay
         setTimeout(() => {
           justCompletedCycle.current[duration] = false;
-        }, 5000);
+        }, 500); // Reduced from 1000ms to 500ms
         
-        // Clear the "recently restarted" flag after 10 seconds
         setTimeout(() => {
           recentlyRestartedTimers.current[duration] = false;
-        }, 10000);
+        }, 1000); // Reduced from 3000ms to 1000ms
         
         if (duration === selectedTime) {
           setLastFiveSeconds(false);
@@ -411,15 +394,7 @@ export default function Timer({
           onTimerComplete(duration);
         }
         
-        // Reset this timer
-        remainingTimeRefs.current[duration] = duration * 1000;
-        startTimeRefs.current[duration] = Date.now();
-        
-        // Start this timer again after a delay
-        setTimeout(() => {
-          startTimer(duration);
-        }, 800);
-        
+        // Update UI to show reset values
         setTimerStates(prev => ({
           ...prev,
           [duration]: {
@@ -427,48 +402,81 @@ export default function Timer({
             seconds: duration % 60
           }
         }));
-      } else {
-        const minutes = Math.floor(remaining / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
-        const totalSeconds = minutes * 60 + seconds;
         
-        setTimerStates(prev => ({
+        // Restart timer after a short delay
+        setTimeout(() => {
+          startTimer(duration);
+        }, 250); // Reduced from 500ms to 250ms
+        
+        return;
+      }
+      
+      // Calculate minutes and seconds from remaining time
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      
+      // Update UI only when seconds or minutes change
+      setTimerStates(prev => {
+        if (prev[duration]?.minutes === minutes && 
+            prev[duration]?.seconds === seconds) {
+          return prev; // Skip update if values haven't changed
+        }
+        
+        return {
           ...prev,
           [duration]: { minutes, seconds }
-        }));
-
-        // Handle betting time based on 2 seconds threshold (instead of 5)
-        if (remaining <= 2000 && bettingTimeRefs.current[duration]) {
-          bettingTimeRefs.current[duration] = false;
-          if (onBettingTimeChange) {
-            onBettingTimeChange(false, duration);
-          }
-        } else if (remaining > 2000 && !bettingTimeRefs.current[duration]) {
-          // Re-enable betting if timer moved away from last 2 seconds
-          bettingTimeRefs.current[duration] = true;
-          if (onBettingTimeChange) {
-            onBettingTimeChange(true, duration);
-          }
+        };
+      });
+      
+      // Handle betting time based on 2 seconds threshold
+      if (remaining <= 2000 && bettingTimeRefs.current[duration]) {
+        bettingTimeRefs.current[duration] = false;
+        if (onBettingTimeChange) {
+          onBettingTimeChange(false, duration);
         }
-        
-        // Replace the existing last 5 seconds check with our new function
-        handleLastFiveSeconds(duration, remaining);
-        
-        // Always send timer tick updates
-        if (onTimerTick) {
-          onTimerTick(remaining, duration);
+      } else if (remaining > 2000 && !bettingTimeRefs.current[duration]) {
+        bettingTimeRefs.current[duration] = true;
+        if (onBettingTimeChange) {
+          onBettingTimeChange(true, duration);
         }
       }
-    }, 100); // Update every 100ms for smoother countdown
+      
+      // Handle last seconds overlay - call BEFORE calculating next update
+      handleLastFiveSeconds(duration, remaining);
+      
+      // Send timer tick updates
+      if (onTimerTick) {
+        onTimerTick(remaining, duration);
+      }
+      
+      // Calculate next update time - use faster updates for more responsive feel
+      let nextUpdateDelay = 250; // 4 updates per second by default
+      
+      if (remaining <= 5000) {
+        // Update 20 times per second during the last 5 seconds for smoother animation
+        nextUpdateDelay = 50;
+      } else if (seconds === 0 || remaining <= 10000) {
+        // Update 10 times per second on minute boundaries and last 10 seconds
+        nextUpdateDelay = 100;
+      } 
+      
+      // Schedule next update
+      timerRefs.current[duration] = setTimeout(runTimer, nextUpdateDelay);
+    };
+    
+    // Start timer immediately without delay
+    runTimer();
   };
 
   const stopTimer = (duration) => {
     if (timerRefs.current[duration]) {
-      clearInterval(timerRefs.current[duration]);
+      clearTimeout(timerRefs.current[duration]);
       timerRefs.current[duration] = null;
     }
+    
     lastFiveSecondsRefs.current[duration] = false;
     bettingTimeRefs.current[duration] = true;
+    
     setTimerStates(prev => ({
       ...prev,
       [duration]: {

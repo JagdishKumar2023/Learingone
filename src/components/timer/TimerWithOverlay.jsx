@@ -1,43 +1,72 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 
-export default function TimerWithOverlay({ duration, isActive, isSelected = false }) {
+// Ultra-simplified version that only handles overlay display with hardware acceleration
+export default function TimerWithOverlay({ 
+  duration, 
+  isActive,
+  isSelected = false,
+  remainingSeconds,
+  showLastFiveSecondsOverlay = false
+}) {
   // Core timer state
   const [remaining, setRemaining] = useState(duration);
   const [showOverlay, setShowOverlay] = useState(false);
+  
+  // Use hardware-accelerated opacity animation
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   
   // Refs for stable state tracking and race condition prevention
   const intervalRef = useRef(null);
   const mountedRef = useRef(true);
   const inLastFiveSecondsRef = useRef(false);
   
-  // Add state to prevent overlay on first render
-  const [initialized, setInitialized] = useState(false);
-  
-  // Reset completely when duration changes or component unmounts
+  // Reset on unmount
   useEffect(() => {
-    // Reset state on mount and when duration changes
-    setRemaining(duration);
-    setShowOverlay(false);
-    inLastFiveSecondsRef.current = false;
-    
     return () => {
-      // Mark unmounted to prevent setState on unmounted component
       mountedRef.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
-  }, [duration]);
+  }, []);
   
-  // Handle selection changes
+  // Handle overlay visibility changes with hardware acceleration - IMMEDIATE RESPONSE
   useEffect(() => {
-    // Hide overlay when this timer is not selected
-    if (!isSelected && showOverlay) {
-      setShowOverlay(false);
-      inLastFiveSecondsRef.current = false;
+    // Simple direct animation - no complex logic
+    if (showLastFiveSecondsOverlay) {
+      // Force immediate update for overlay state
+      setShowOverlay(true);
+      inLastFiveSecondsRef.current = true;
+      
+      // Hardware accelerated fade in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 100, // Faster animation for more responsive feel
+        useNativeDriver: true, // Critical for performance
+      }).start();
+    } else {
+      // Hardware accelerated fade out
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: true, // Critical for performance
+      }).start(() => {
+        // Only update state after animation completes to prevent flickering
+        setShowOverlay(false);
+        inLastFiveSecondsRef.current = false;
+      });
     }
-  }, [isSelected, showOverlay]);
+  }, [showLastFiveSecondsOverlay, fadeAnim]);
   
   // Main timer effect with proper cleanup
   useEffect(() => {
+    // Don't run internal timer if we're getting time from parent
+    if (remainingSeconds !== undefined) {
+      setRemaining(remainingSeconds);
+      return;
+    }
+    
     // Clear any existing timer first
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -55,11 +84,11 @@ export default function TimerWithOverlay({ duration, isActive, isSelected = fals
     // Reset state at timer start
     setRemaining(duration);
     
-    // Don't show overlay at timer start, regardless of remaining time
+    // Don't show overlay at timer start
     setShowOverlay(false);
     inLastFiveSecondsRef.current = false;
     
-    // Start new interval
+    // Start new interval - update more frequently for smoother display
     intervalRef.current = setInterval(() => {
       if (!mountedRef.current) return;
       
@@ -102,7 +131,7 @@ export default function TimerWithOverlay({ duration, isActive, isSelected = fals
         
         return nextRemaining;
       });
-    }, 1000);
+    }, 500); // Update twice per second for smoother countdown
     
     // Cleanup function
     return () => {
@@ -111,41 +140,22 @@ export default function TimerWithOverlay({ duration, isActive, isSelected = fals
         intervalRef.current = null;
       }
     };
-  }, [isActive, duration, isSelected]); // Include isSelected in dependencies
-  
-  // Initialize component with no overlay
-  useEffect(() => {
-    // Set initialized after a delay
-    const timer = setTimeout(() => {
-      setInitialized(true);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-  
-  // Don't show overlay on first render
-  const shouldShowOverlay = initialized && showOverlay;
+  }, [isActive, duration, isSelected, remainingSeconds]); 
   
   // Format time
   const min = String(Math.floor(remaining / 60)).padStart(2, '0');
   const sec = String(remaining % 60).padStart(2, '0');
   
-  // Render component
-  return (
-    <View style={styles.container}>
-      {/* Only render overlay if explicitly shown AND after initialization */}
-      {shouldShowOverlay && (
-        <View style={styles.overlay} />
-      )}
-    </View>
-  );
+  // Render component with hardware-accelerated animation
 }
 
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+    height: 150,
+    marginVertical: 5,
+    zIndex: 100,
   },
-  timerBox: { margin: 10, padding: 20, backgroundColor: '#333', borderRadius: 12, alignItems: 'center', minWidth: 120 },
-  timerLabel: { color: 'white', fontSize: 32, fontWeight: 'bold' },
   overlay: {
     position: 'absolute',
     top: 0,
@@ -153,6 +163,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(255, 0, 0, 0.3)',
-  },
-  overlayText: { color: 'white', fontSize: 24, fontWeight: 'bold' },
+    borderRadius: 8,
+  }
 });

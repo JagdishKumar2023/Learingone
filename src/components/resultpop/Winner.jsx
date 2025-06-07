@@ -1,12 +1,12 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View, Text, Dimensions, StyleSheet} from 'react-native';
+import React, {useCallback, useMemo, useRef, useState, useEffect} from 'react';
+import {View, Text, Dimensions, StyleSheet, Button, SafeAreaView} from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import LottieView from 'lottie-react-native';
 import winnerImage from './../../../src/assets/winner.json';
 
 const {height} = Dimensions.get('window');
 
-const WinnerBottomSheet = ({isVisible, onClose, period, amount}) => {
+const WinnerBottomSheet = ({isVisible, onClose, period, amount, prediction, result, duration}) => {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => [(height * 0.8).toFixed(0) + 'px'], []);
 
@@ -16,6 +16,15 @@ const WinnerBottomSheet = ({isVisible, onClose, period, amount}) => {
     },
     [onClose],
   );
+
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
 
   return (
     <BottomSheet
@@ -29,6 +38,9 @@ const WinnerBottomSheet = ({isVisible, onClose, period, amount}) => {
         <LottieView source={winnerImage} autoPlay loop style={styles.lottie} />
         <Text style={styles.period}>Period: {period}</Text>
         <Text style={styles.amount}>Winning Amount: ₹{amount}</Text>
+        <Text style={styles.prediction}>Prediction: {prediction}</Text>
+        <Text style={styles.result}>Result: {result}</Text>
+        <Text style={styles.duration}>Duration: {duration}</Text>
       </View>
     </BottomSheet>
   );
@@ -62,6 +74,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFF',
   },
+  prediction: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 10,
+  },
+  result: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 10,
+  },
+  duration: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 10,
+  },
 });
 
 export default WinnerBottomSheet;
+
+// TEST DEMO BELOW
+export const WinnerTestDemo = () => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#222' }}>
+      <Button title="Show Winner Popup" onPress={() => setVisible(true)} />
+      <WinnerBottomSheet
+        isVisible={visible}
+        onClose={() => setVisible(false)}
+        period={"123456"}
+        amount={"500"}
+        prediction={"Red"}
+        result={"Red"}
+        duration={"1min"}
+      />
+    </SafeAreaView>
+  );
+};

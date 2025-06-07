@@ -1,4 +1,4 @@
-import React, {useState, useRef, useCallback, useEffect} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import {
   Text,
   StyleSheet,
@@ -38,39 +38,11 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing, metaData}) => {
   const handleSheetChanges = useCallback(
     index => {
       if (index === -1) {
-        progress.value = 0;
-        progressWidth.value = 0;
         onClose();
       }
     },
-    [onClose, progress, progressWidth],
+    [onClose],
   );
-
-  // Cleanup effect for bottom sheet and animations
-  const animationTimeout = useRef();
-
-  useEffect(() => {
-    let isMounted = true;
-    return () => {
-      isMounted = false;
-
-      // Reset animation values
-      progress.value = 0;
-      progressWidth.value = 0;
-
-      // Properly detach bottom sheet
-      if (bottomSheetRef.current) {
-        bottomSheetRef.current.close();
-        bottomSheetRef.current = null;
-      }
-      clearTimeout(animationTimeout.current);
-
-      // Reset component state
-      if (isMounted) {
-        setBetAmount(200);
-      }
-    };
-  }, [progress, progressWidth]);
 
   const showToast = (message, success) => {
     if (Platform.OS === 'android') {
@@ -112,9 +84,6 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing, metaData}) => {
 
     setTimeout(() => {
       const isSuccessful = Math.random() > 0.3;
-
-      if (!isMounted) return;
-
       showToast(
         isSuccessful
           ? `✅ Order ₹${finalAmount} placed successfully`
@@ -131,11 +100,10 @@ const BetModal = ({onClose, modalColor = '#fff', selectedRing, metaData}) => {
         easing: Easing.linear,
       });
 
-      if (isSuccessful && isMounted) {
+      if (isSuccessful) {
         bottomSheetRef.current?.close();
       }
     }, 800);
-
     const rawData = await AsyncStorage.getItem('periodMetaData');
     const periodMetaData = rawData ? JSON.parse(rawData) : null;
     console.log('periodMetaData', periodMetaData);

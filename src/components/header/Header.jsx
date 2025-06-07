@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, SafeAreaView} from 'react-native';
 import LottieView from 'lottie-react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useGame} from '../../gamelogic/context/GameContext';
@@ -14,6 +14,7 @@ const Header = () => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   return (
+    <SafeAreaView style={{backgroundColor: '#1c1c1c', marginTop: 40}}>
     <View style={styles.header}>
       {/* Logo Section */}
       <View style={styles.logoContainer}>
@@ -52,6 +53,7 @@ const Header = () => {
         </TouchableOpacity>
       </View>
     </View>
+    </SafeAreaView>
   );
 };
 
